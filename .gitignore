@@ -1,0 +1,14 @@
+# Raw and intermediate data (too large for GitHub — see README for status)
+data/
+
+# Common data byproducts if scripts are run from the project root
+*.nc
+*.pkl
+*.npy
+*.csv
+*.xlsx
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
