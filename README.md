@@ -10,13 +10,14 @@ teleconnection problem.
 
 ## Status
 
-Early stage — data collection in progress, no analysis scripts yet.
+Early stage — rainfall climatology figures done, SST/index data still to come.
 
 ## Data
 
 | Dataset | Status | Location |
 |---|---|---|
 | IMD gridded daily rainfall, 0.25°, monsoon-masked, 1901–2020 | On hand | `data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020.nc` |
+| Surface elevation, regridded to the IMD 0.25° grid | On hand — built by `fetch_elevation.py` from AWS-hosted Terrarium terrain tiles | `data/elevation/india_elevation_0p25deg.nc` |
 | 120-year SST record (e.g. HadISST / ERSSTv5) | Not yet obtained | will go in `data/sst/` |
 | ENSO index (e.g. Niño 3.4) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | IOD index (Dipole Mode Index) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
@@ -24,6 +25,16 @@ Early stage — data collection in progress, no analysis scripts yet.
 
 Raw and intermediate data files are not committed to this repository (see `.gitignore`) — they're too
 large for GitHub. Only code, figures, and documentation are tracked.
+
+## Scripts
+
+- `fetch_elevation.py` — one-time data prep. Downloads AWS-hosted Terrarium elevation tiles and
+  area-averages them onto the IMD rainfall grid's exact lat/lon coordinates. Run once before any script
+  that needs `data/elevation/india_elevation_0p25deg.nc`.
+- `plot_jjas_climatology.py` — climatological JJAS mean rainfall (shaded) and interannual std. dev.
+  (contoured), in 4 framing variants. See `figures/`.
+- `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with
+  elevation (contoured).
 
 ## Setup
 
@@ -36,8 +47,6 @@ pip install -r requirements.txt
 
 ```
 data/            (gitignored) raw + intermediate datasets
-figures/         result figures, once produced
+figures/         result figures
 docs/            write-ups / notes
 ```
-
-Analysis scripts will be added at the project root as the pipeline develops.

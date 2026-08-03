@@ -8,3 +8,5 @@ eofs
 netCDF4
 openpyxl
 statsmodels
+pillow
+certifi
