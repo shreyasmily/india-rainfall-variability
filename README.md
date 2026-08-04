@@ -34,11 +34,14 @@ large for GitHub. Only code, figures, and documentation are tracked.
 - `plot_jjas_climatology.py` — climatological JJAS mean rainfall (shaded) and interannual std. dev.
   (contoured), in 4 framing variants. See `figures/`.
 - `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with
-  elevation (contoured).
+  elevation (contoured). Computed from rainfall totals, not a rainy-day count, so it has no threshold to
+  keep in sync with the rainy-day scripts below. Generates 2 color-scheme variants (YlOrRd and BuPu) for
+  side-by-side comparison.
 - `plot_jjas_rainy_days_intensity.py` — climatological mean number of rainy days in JJAS (shaded,
   ≥2.5 mm/day IMD threshold), mean rainfall intensity on rainy days (contoured).
-- `plot_jjas_rainy_days_0mm.py` / `plot_jjas_rainy_days_1mm.py` — same "mean rainy days" metric at two
-  other thresholds (>0 and >1 mm/day), for comparison against the IMD-standard 2.5mm figure above.
+- `plot_jjas_rainy_days_0mm.py` / `plot_jjas_rainy_days_1mm.py` — same rainy-days + intensity figure at
+  two other thresholds (>0 and >1 mm/day, same 10-30 mm/day intensity contour levels), for comparison
+  against the IMD-standard 2.5mm figure above.
 - `compare_rainy_day_thresholds.py` — quantifies how much the >0mm vs >1mm threshold choice actually
   matters: spatial Pearson r, a difference map, and a per-cell scatter/regression. Read the docstring —
   the r-value alone (~0.996) is misleadingly reassuring here; the difference map is the more informative
