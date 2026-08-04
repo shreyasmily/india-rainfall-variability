@@ -59,6 +59,26 @@ from this network when checked; other hosts (GitHub, AWS S3, USGS, GEBCO, OpenTo
 If a script needs NOAA-hosted data (e.g. HadISST/ERSST mirrors), check reachability first rather than
 assuming the NOAA host will respond.
 
+## Environment gotcha: PATH order breaks matplotlib rendering
+
+If `$env:Path` has been rebuilt from the Machine+User registry values in the current shell (e.g. after
+installing Git, or any `git`-related command in this session that did
+`$env:Path = [System.Environment]::GetEnvironmentVariable(...)`), running matplotlib afterwards can
+**crash the Python process outright** (native fault, exit code shows as 127 in the harness, actual
+Windows exit code `-1066598273` / `0xC0000409`) — not a Python exception, so no traceback. Root cause:
+something earlier in that rebuilt PATH (observed with Git for Windows present) shadows a DLL the conda
+env's own Agg/FreeType rendering stack needs, causing an ABI mismatch crash specifically when
+`fig.canvas.draw()` / `savefig()` actually renders (plain `import matplotlib` and `plt.subplots()` work
+fine — it's the rendering call that dies). This is a real PATH-ordering bug, not memory pressure (initially
+misdiagnosed as that; confirmed by isolating PATH to just the conda env and retesting).
+
+Fix: before running any plotting script, set PATH to put the conda env's own directories first:
+```powershell
+$env:Path = "C:\Users\shrey\.conda\envs\podaac_env;C:\Users\shrey\.conda\envs\podaac_env\Library\mingw-w64\bin;C:\Users\shrey\.conda\envs\podaac_env\Library\usr\bin;C:\Users\shrey\.conda\envs\podaac_env\Library\bin;C:\Users\shrey\.conda\envs\podaac_env\Scripts;C:\Windows\System32;C:\Windows"
+```
+If a plotting script mysteriously produces no output and no error, check `$LASTEXITCODE` for
+`-1066598273` before chasing anything else — it means this, not a bug in the script.
+
 ## Conventions
 
 - Map figures: crop to the data's actual extent rather than the full lat/lon grid (which extends past
@@ -73,4 +93,10 @@ assuming the NOAA host will respond.
 - Fractions/ratios over a multi-year record (e.g. JJAS share of annual rainfall) are computed from
   pooled sums across all years (`jjas_total.sum('year') / annual_total.sum('year')`), not by averaging
   each year's own ratio — a single near-zero-rainfall year in a dry cell would otherwise skew a simple
-  average.
+  average. Simple day-counts (e.g. mean rainy days per season) don't need this - summing over the full
+  multi-year time series and dividing by n_years is already equivalent to averaging each year's count.
+- Don't lean on a single spatial Pearson r to claim two gridded fields "agree" — two fields sharing the
+  same dominant climatological gradient (e.g. any two rainy-day-threshold definitions over India) will
+  correlate very highly almost by construction, which can hide large practical differences. See
+  `compare_rainy_day_thresholds.py` for the pattern to follow: report r if asked for, but pair it with
+  a difference field and/or regression slope that shows what the correlation is masking.

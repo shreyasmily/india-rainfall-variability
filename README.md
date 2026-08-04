@@ -36,9 +36,13 @@ large for GitHub. Only code, figures, and documentation are tracked.
 - `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with
   elevation (contoured).
 - `plot_jjas_rainy_days_intensity.py` — climatological mean number of rainy days in JJAS (shaded,
-  ≥2.5 mm/day IMD threshold), mean rainfall intensity on rainy days (contoured), and the three sub-India
-  analysis regions (Central Monsoon Zone, Western Ghats, Southeastern India) outlined using approximate
-  literature boundaries — see the script docstring before relying on the exact boxes.
+  ≥2.5 mm/day IMD threshold), mean rainfall intensity on rainy days (contoured).
+- `plot_jjas_rainy_days_0mm.py` / `plot_jjas_rainy_days_1mm.py` — same "mean rainy days" metric at two
+  other thresholds (>0 and >1 mm/day), for comparison against the IMD-standard 2.5mm figure above.
+- `compare_rainy_day_thresholds.py` — quantifies how much the >0mm vs >1mm threshold choice actually
+  matters: spatial Pearson r, a difference map, and a per-cell scatter/regression. Read the docstring —
+  the r-value alone (~0.996) is misleadingly reassuring here; the difference map is the more informative
+  result (up to ~39 days/season difference in the wettest cells).
 
 ## Setup
 

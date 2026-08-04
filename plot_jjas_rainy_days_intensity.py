@@ -1,30 +1,22 @@
 """
 IMD 0.25 deg gridded rainfall, 1901-2020: climatological mean number of rainy
-days in JJAS (shaded), with mean rainfall intensity on rainy days (contours),
-and the three sub-India analysis regions outlined.
+days in JJAS (shaded), with mean rainfall intensity on rainy days (contours).
 
-"Rainy day" = daily rainfall >= 2.5 mm, the standard IMD threshold.
+"Rainy day" = daily rainfall >= 2.5 mm, the standard IMD threshold. See
+compare_rainy_day_thresholds.py for how sensitive this figure's "rainy days"
+count is to that threshold choice (also tested at >0 and >1 mm/day).
 
 Intensity contours use a single dark color with increasing linewidth per level
 (not grayscale), matching plot_jjas_climatology.py and
 plot_jjas_rainfall_fraction.py: pale/white lines would vanish over pale
 shading, and a fixed 10-30 mm/day color scale would misleadingly imply that's
 the data's range when cells go higher (true max reported as text instead).
-
-Region boxes are APPROXIMATE, commonly-cited literature boundaries, not a
-specific paper's exact definition - check these against whatever source your
-study is actually using before relying on them:
-  - Central Monsoon Zone: 74-86E, 16-26N   (Gadgil & Gadgil 2006; Rajeevan et al.)
-  - Western Ghats:        73-77E, 8-21N
-  - Southeastern India:   78-84E, 8-16N    (Tamil Nadu / coastal Andhra Pradesh)
 """
 import xarray as xr
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.lines as mlines
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
@@ -51,13 +43,6 @@ print(f"{n_years} years | mean rainy days range: {float(mean_rainy_days.min()):.
 
 DATA_EXTENT = [67.0, 90.0, 7.25, 32.75]  # matches other figures in this project
 
-REGIONS = [
-    # name, lon_min, lon_max, lat_min, lat_max, color
-    ('Central Monsoon Zone', 74, 86, 16, 26, '#d62728'),
-    ('Western Ghats',        73, 77,  8, 21, '#ff7f0e'),
-    ('Southeastern India',   78, 84,  8, 16, '#2ca02c'),
-]
-
 fig, ax = plt.subplots(figsize=(8, 9), subplot_kw={'projection': ccrs.PlateCarree()})
 ax.set_facecolor('#eaf2f8')
 
@@ -75,12 +60,6 @@ cs = mean_intensity.plot.contour(
     levels=intensity_levels, colors='#333333', linewidths=intensity_linewidths,
 )
 ax.clabel(cs, inline=True, fontsize=8, fmt='%d')
-
-for name, lon_min, lon_max, lat_min, lat_max, color in REGIONS:
-    ax.add_patch(mpatches.Rectangle(
-        (lon_min, lat_min), lon_max - lon_min, lat_max - lat_min,
-        transform=ccrs.PlateCarree(), fill=False, edgecolor=color, linewidth=2.0, zorder=4,
-    ))
 
 ax.add_feature(cfeature.COASTLINE, linewidth=0.8)
 ax.set_extent(DATA_EXTENT, crs=ccrs.PlateCarree())
@@ -106,12 +85,6 @@ ax.text(
     transform=ax.transAxes, fontsize=7, va='bottom', ha='left',
     bbox=dict(facecolor='white', alpha=0.75, edgecolor='none', pad=2),
 )
-
-legend_handles = [
-    mlines.Line2D([], [], color=color, linewidth=2.0, label=name)
-    for name, *_, color in REGIONS
-]
-ax.legend(handles=legend_handles, loc='upper right', fontsize=7, framealpha=0.85)
 
 plt.tight_layout()
 plt.savefig('figures/jjas_rainy_days_intensity.png', dpi=200, bbox_inches='tight')
