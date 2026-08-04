@@ -35,6 +35,10 @@ large for GitHub. Only code, figures, and documentation are tracked.
   (contoured), in 4 framing variants. See `figures/`.
 - `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with
   elevation (contoured).
+- `plot_jjas_rainy_days_intensity.py` — climatological mean number of rainy days in JJAS (shaded,
+  ≥2.5 mm/day IMD threshold), mean rainfall intensity on rainy days (contoured), and the three sub-India
+  analysis regions (Central Monsoon Zone, Western Ghats, Southeastern India) outlined using approximate
+  literature boundaries — see the script docstring before relying on the exact boxes.
 
 ## Setup
 
