@@ -31,9 +31,13 @@ Two datasets on hand:
   the actual India domain; the lat/lon grid extends well beyond it (empty cells elsewhere).
 - `data/elevation/india_elevation_0p25deg.nc` — surface elevation on the exact same lat/lon grid as the
   rainfall data, built by `fetch_elevation.py`. Not a precision DEM regrid — see that script's docstring.
+- `data/indices/airi_indices.csv` — AIRI + 6 alternate all-India JJAS rainfall variability measures
+  (one row per year, 1901-2020), built by `compute_airi_indices.py`. See that script's docstring for the
+  exact definition of each column - they're not all the same kind of quantity (some are anomalies in
+  mm/day, one is a unitless standardized anomaly, one is a raw grid-point count).
 
-Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and possibly precomputed
-AIRI/ENSO/IOD index time series if not deriving them locally.
+Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
+series themselves (not yet derived).
 
 `data/` is gitignored — do not assume its contents are committed. Update the data table in README.md
 as datasets are added or computed.
@@ -100,3 +104,11 @@ If a plotting script mysteriously produces no output and no error, check `$LASTE
   correlate very highly almost by construction, which can hide large practical differences. See
   `compare_rainy_day_thresholds.py` for the pattern to follow: report r if asked for, but pair it with
   a difference field and/or regression slope that shows what the correlation is masking.
+- `compute_airi_indices.py`'s spatial averages are deliberately UNWEIGHTED (simple grid-point mean),
+  matching the literal published definitions being reproduced there - don't "fix" this to cos(lat)
+  weighting to match the EOF analysis convention elsewhere without checking first, it's intentional.
+- When a boolean threshold mask (e.g. `precip > threshold`) is summed/averaged over space or time, cells
+  outside the valid India domain silently count as `False`/0 rather than NaN (NaN comparisons are always
+  False) - explicitly `.where(monsoon_mask.notnull())` the result before spatially averaging, or invalid
+  cells will quietly dilute the average instead of being excluded. See `compute_airi_indices.py` for the
+  pattern.

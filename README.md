@@ -21,7 +21,7 @@ Early stage — rainfall climatology figures done, SST/index data still to come.
 | 120-year SST record (e.g. HadISST / ERSSTv5) | Not yet obtained | will go in `data/sst/` |
 | ENSO index (e.g. Niño 3.4) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | IOD index (Dipole Mode Index) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
-| AIRI (All-India Rainfall Index) | Not yet obtained — likely computed by area-averaging the IMD rainfall grid | will go in `data/indices/` |
+| AIRI + 6 alternate measures | On hand — computed by `compute_airi_indices.py` | `data/indices/airi_indices.csv` |
 
 Raw and intermediate data files are not committed to this repository (see `.gitignore`) — they're too
 large for GitHub. Only code, figures, and documentation are tracked.
@@ -46,6 +46,13 @@ large for GitHub. Only code, figures, and documentation are tracked.
   matters: spatial Pearson r, a difference map, and a per-cell scatter/regression. Read the docstring —
   the r-value alone (~0.996) is misleadingly reassuring here; the difference map is the more informative
   result (up to ~39 days/season difference in the wettest cells).
+- `compute_airi_indices.py` — AIRI (avg raw JJAS rainfall anomaly, all-India) plus 6 alternate all-India
+  measures of JJAS rainfall variability (standardized anomaly; count of positive-anomaly grid points;
+  avg rainy days/season; avg intensity on rainy days; mean anomaly restricted to positive-only /
+  negative-only grid points) — see the script docstring for exact definitions. Outputs a 120-year time
+  series CSV (`data/indices/airi_indices.csv`) and a 7-panel figure
+  (`figures/airi_indices_timeseries.png`). Unlike the other scripts here, these are *unweighted* spatial
+  averages (matching the literal definitions), not area/cos(lat)-weighted.
 
 ## Setup
 
