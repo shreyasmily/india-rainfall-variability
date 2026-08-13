@@ -44,8 +44,8 @@ large for GitHub. Only code, figures, and documentation are tracked.
   against the IMD-standard 2.5mm figure above.
 - `compare_rainy_day_thresholds.py` — quantifies how much the >0mm vs >1mm threshold choice actually
   matters: spatial Pearson r, a difference map, and a per-cell scatter/regression. Read the docstring —
-  the r-value alone (~0.996) is misleadingly reassuring here; the difference map is the more informative
-  result (up to ~39 days/season difference in the wettest cells).
+  the r-value alone (~0.986) is misleadingly reassuring here; the difference map (a roughly constant
+  ~11-13 day offset across most of India) is the more informative result.
 - `compute_airi_indices.py` — AIRI (avg raw JJAS rainfall anomaly, all-India) plus 6 alternate all-India
   measures of JJAS rainfall variability (standardized anomaly; count of positive-anomaly grid points;
   avg rainy days/season; avg intensity on rainy days; mean anomaly restricted to positive-only /
@@ -53,6 +53,11 @@ large for GitHub. Only code, figures, and documentation are tracked.
   series CSV (`data/indices/airi_indices.csv`) and a 7-panel figure
   (`figures/airi_indices_timeseries.png`). Unlike the other scripts here, these are *unweighted* spatial
   averages (matching the literal definitions), not area/cos(lat)-weighted.
+- `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among all 7 AIRI measures above,
+  as a heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
+  (`data/indices/airi_correlation_matrix.csv`). AIRI/standardized-anomaly/N-positive-gridpoints/mean-
+  rainy-days are all tightly correlated (r≥0.91, largely the same signal); mean intensity is the most
+  independent measure.
 
 ## Setup
 
