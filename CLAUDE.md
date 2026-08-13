@@ -111,4 +111,9 @@ If a plotting script mysteriously produces no output and no error, check `$LASTE
   outside the valid India domain silently count as `False`/0 rather than NaN (NaN comparisons are always
   False) - explicitly `.where(monsoon_mask.notnull())` the result before spatially averaging, or invalid
   cells will quietly dilute the average instead of being excluded. See `compute_airi_indices.py` for the
-  pattern.
+  pattern. This bug was originally introduced in `plot_jjas_rainy_days_intensity.py` / `_0mm.py` / `_1mm.py`
+  / `compare_rainy_day_thresholds.py` (all fixed retroactively once found) - it didn't just shift numbers
+  slightly, it changed the actual conclusion: the corrected regression between the >0mm and >1mm fields
+  is a roughly constant ~11-13 day offset (slope ~1.04), not the proportional/wetness-scaling bias the
+  buggy version suggested (slope ~1.21). If you add another rainy-day-threshold script, apply this fix
+  from the start rather than after the fact.

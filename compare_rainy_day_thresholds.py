@@ -12,7 +12,7 @@ NOT a great primary metric here, even though it's a common first instinct for
 the same underlying climatological wet/dry gradient (Western Ghats wet,
 NW India dry, etc.), so they will correlate very highly almost by
 construction, regardless of how much the threshold choice actually changes
-the day count. Run this script and you'll see r ~ 0.996 - technically true,
+the day count. Run this script and you'll see r ~ 0.99 - technically true,
 but it mostly just confirms both maps recognize the Western Ghats as wet,
 which was never in question.
 
@@ -38,9 +38,15 @@ ds = xr.open_dataset('data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020
 precip = ds['precip']
 jjas = precip.sel(time=precip['time.month'].isin([6, 7, 8, 9]))
 n_years = len(np.unique(jjas['time.year'].values))
+valid = ds['monsoon_mask'].notnull()
 
-days_0mm = (jjas > 0).sum(dim='time') / n_years
-days_1mm = (jjas > 1).sum(dim='time') / n_years
+# .where(valid): a boolean mask's .sum() doesn't propagate NaN for cells outside
+# India (NaN > threshold is False, not NaN) - without this, ~13,800 non-India
+# cells would read as "0 rainy days" for both thresholds and get pulled into
+# the correlation/regression below as thousands of trivially-agreeing (0,0)
+# points, inflating r and distorting the fitted slope. See CLAUDE.md.
+days_0mm = ((jjas > 0).sum(dim='time') / n_years).where(valid)
+days_1mm = ((jjas > 1).sum(dim='time') / n_years).where(valid)
 diff = days_0mm - days_1mm  # = mean days/season with 0 < rain <= 1mm
 
 a = days_0mm.values.ravel()

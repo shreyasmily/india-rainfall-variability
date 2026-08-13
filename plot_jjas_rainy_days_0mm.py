@@ -21,11 +21,15 @@ ds = xr.open_dataset('data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020
 precip = ds['precip']
 jjas = precip.sel(time=precip['time.month'].isin([6, 7, 8, 9]))
 n_years = len(np.unique(jjas['time.year'].values))
+valid = ds['monsoon_mask'].notnull()
 
 RAINY_DAY_THRESHOLD = 0  # mm/day - any measurable (nonzero) rainfall
 rainy_mask = jjas > RAINY_DAY_THRESHOLD
-mean_rainy_days = rainy_mask.sum(dim='time') / n_years
-mean_intensity = jjas.where(rainy_mask).mean(dim='time')
+# .where(valid): a boolean mask's .sum() doesn't propagate NaN for cells outside
+# India (NaN > threshold is False, not NaN), so those cells would otherwise
+# silently read as "0 rainy days" instead of being excluded - see CLAUDE.md.
+mean_rainy_days = (rainy_mask.sum(dim='time') / n_years).where(valid)
+mean_intensity = jjas.where(rainy_mask).mean(dim='time').where(valid)
 
 print(f"{n_years} years | threshold >{RAINY_DAY_THRESHOLD} mm/day | "
       f"mean rainy days range: {float(mean_rainy_days.min()):.1f}-{float(mean_rainy_days.max()):.1f} days "

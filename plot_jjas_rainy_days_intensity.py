@@ -24,6 +24,7 @@ ds = xr.open_dataset('data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020
 precip = ds['precip']
 jjas = precip.sel(time=precip['time.month'].isin([6, 7, 8, 9]))
 n_years = len(np.unique(jjas['time.year'].values))
+valid = ds['monsoon_mask'].notnull()
 
 RAINY_DAY_THRESHOLD = 2.5  # mm/day, standard IMD "rainy day" definition
 rainy_mask = jjas >= RAINY_DAY_THRESHOLD
@@ -32,11 +33,14 @@ rainy_mask = jjas >= RAINY_DAY_THRESHOLD
 # all years divided by number of years (equivalent to averaging each year's own
 # count, since this is a simple sum - unlike the pooled-ratio approach needed
 # for fractions in plot_jjas_rainfall_fraction.py).
-mean_rainy_days = rainy_mask.sum(dim='time') / n_years
+# .where(valid): a boolean mask's .sum() doesn't propagate NaN for cells outside
+# India (NaN >= threshold is False, not NaN), so those cells would otherwise
+# silently read as "0 rainy days" instead of being excluded - see CLAUDE.md.
+mean_rainy_days = (rainy_mask.sum(dim='time') / n_years).where(valid)
 
 # Mean intensity on rainy days, pooled across all years directly (the 'time'
 # dimension already spans all 120 years' JJAS days).
-mean_intensity = jjas.where(rainy_mask).mean(dim='time')
+mean_intensity = jjas.where(rainy_mask).mean(dim='time').where(valid)
 
 print(f"{n_years} years | mean rainy days range: {float(mean_rainy_days.min()):.1f}-{float(mean_rainy_days.max()):.1f} days "
       f"| mean intensity range: {float(mean_intensity.min()):.1f}-{float(mean_intensity.max()):.1f} mm/day")
