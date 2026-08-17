@@ -38,6 +38,12 @@ Two datasets on hand:
   a `_detrended` counterpart column (linear 1901-2020 trend removed); `compute_airi_correlation_matrix.py`
   always correlates the detrended versions, matching the source paper's methodology.
 
+`compute_moron_eof_analysis.py` runs EOF decomposition (cos-lat weighted, via the `eofs` library, same
+convention as the companion enso-sst-analysis project) on standardized (per-gridpoint) versions of the
+same three fields underlying measures 3/4 of the AIRI CSV (rainfall mean, rainy-day frequency, mean
+intensity), extracting EOF1/PC1 and EOF2/PC2 for each. Needs `data/indices/airi_indices.csv` to exist
+first (used only to fix PC1's sign convention against AIRI).
+
 Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
 series themselves (not yet derived).
 
@@ -52,7 +58,10 @@ Python's `ssl.create_default_context()` fails on this machine with
 just obvious ones like `urllib.request.urlopen`, but also code paths that build an SSL context
 internally, e.g. `xarray.Dataset.to_netcdf()` itself fails via a dask→distributed→tornado import chain
 that constructs one at import time. `cartopy`'s shapefile auto-downloads (Natural Earth, SRTM) hit the
-same wall.
+same wall - and so does `eofs.xarray.Eof()` whenever it's handed a lazily-loaded (dask-backed) array,
+since the solver forces a `.compute()` internally, which triggers the same dask scheduler-detection path
+(see `compute_moron_eof_analysis.py`). The pattern to watch for: any surprising `ssl.SSLError` deep in an
+unrelated traceback almost always traces back to this, regardless of what the script was actually doing.
 
 Workaround used throughout this project: monkeypatch `ssl.create_default_context` at the top of any
 script that touches the network or calls `to_netcdf`/`to_zarr`, to inject `cafile=certifi.where()`

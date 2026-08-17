@@ -63,6 +63,15 @@ large for GitHub. Only code, figures, and documentation are tracked.
   AIRI-vs-mean-intensity cell (paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) —
   see git history / conversation log for what's been ruled out (aggregation order, rain-weighting,
   threshold choice, spatial mask artifacts) before picking this back up.
+- `compute_moron_eof_analysis.py` — EOF analysis (Moron et al. 2017 style) of JJAS standardized
+  anomalies for rainfall mean, rainy-day frequency, and mean intensity (same per-gridpoint definitions
+  as `compute_airi_indices.py`, standardized per grid point instead of spatially averaged). cos(lat)-
+  weighted, matching the companion enso-sst-analysis project's EOF convention. Outputs one 4-panel
+  figure per variable (EOF1/PC1, EOF2/PC2) — `figures/eof_rainfall_mean.png`,
+  `figures/eof_rainy_day_frequency.png`, `figures/eof_mean_intensity.png`. PC1 sign is fixed (if needed)
+  to correlate positively with AIRI. Rainfall-mean and rainy-day-frequency EOF1 explain 17.7%/31.0% of
+  variance and correlate strongly with AIRI (r=0.95/0.91) — mean intensity's EOF1 explains far less
+  (7.1%) and correlates weakly (r=0.26), consistent with the correlation matrix above.
 
 ## Setup
 
