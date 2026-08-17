@@ -72,6 +72,10 @@ large for GitHub. Only code, figures, and documentation are tracked.
   to correlate positively with AIRI. Rainfall-mean and rainy-day-frequency EOF1 explain 17.7%/31.0% of
   variance and correlate strongly with AIRI (r=0.95/0.91) — mean intensity's EOF1 explains far less
   (7.1%) and correlates weakly (r=0.26), consistent with the correlation matrix above.
+- `plot_eof_comparison.py` — the 4 headline spatial patterns from the above (rainfall mean EOF1+EOF2,
+  rainy-day-frequency EOF1, mean-intensity EOF1) laid out together in one figure
+  (`figures/eof_comparison.png`), maps only (no PC time series). Recomputes the same EOFs rather than
+  loading saved output — see this script if you need to change what the comparison shows.
 
 ## Setup
 
