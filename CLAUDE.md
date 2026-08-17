@@ -34,7 +34,9 @@ Two datasets on hand:
 - `data/indices/airi_indices.csv` — AIRI + 6 alternate all-India JJAS rainfall variability measures
   (one row per year, 1901-2020), built by `compute_airi_indices.py`. See that script's docstring for the
   exact definition of each column - they're not all the same kind of quantity (some are anomalies in
-  mm/day, one is a unitless standardized anomaly, one is a raw grid-point count).
+  mm/day, one is a unitless standardized anomaly, one is a raw grid-point count). Each measure also has
+  a `_detrended` counterpart column (linear 1901-2020 trend removed); `compute_airi_correlation_matrix.py`
+  always correlates the detrended versions, matching the source paper's methodology.
 
 Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
 series themselves (not yet derived).
@@ -82,6 +84,41 @@ $env:Path = "C:\Users\shrey\.conda\envs\podaac_env;C:\Users\shrey\.conda\envs\po
 ```
 If a plotting script mysteriously produces no output and no error, check `$LASTEXITCODE` for
 `-1066598273` before chasing anything else — it means this, not a bug in the script.
+
+## Open issue: AIRI-vs-mean-intensity correlation doesn't match the source paper
+
+The project is reproducing a specific paper's ("Spencer & Hill") 6-alternate-measures methodology and
+its Figure 2 cross-correlation matrix. Reproduction is good but not exact for one cell:
+
+- Paper's Figure 2: AIRI vs. mean intensity on rainy days = **0.77** (raw AIRI, not standardized).
+- Our result: **0.58** raw, **0.63** after detrending both series (paper detrends before correlating -
+  see below). Still a real gap.
+- Everything else matches the paper closely: the "extent" group (standardized anomaly, N-positive,
+  mean rainy days vs AIRI) all reproduce the paper's ">0.9" claim almost to 2 decimal places (0.97-0.98
+  vs paper's .98/.96/.91). Mean-negative-anomaly vs AIRI, detrended, comes out to 0.76 - right at the
+  paper's stated "no coefficient in this group exceeds 0.77" ceiling.
+
+What's been ruled out (don't re-try these without new evidence):
+- **Aggregation order**: per-gridpoint-then-spatial average (current) vs. pooling all rainy (day,
+  gridpoint) values directly (flat/rain-weighted) - mathematically these can differ, but here give 0.58
+  vs 0.57, i.e. the same thing within noise. Confirmed the paper's own wording ("average across all grid
+  points OF [rainfall rate on rainy days]") literally specifies the per-gridpoint-first reading anyway.
+- **Rainy-day threshold**: paper confirms 1mm/day, matches what we use. A threshold sweep (0/0.1/0.5/1/
+  2.5mm) moves r within 0.55-0.71, never reaches 0.77 at any threshold, so this isn't a simple threshold
+  mismatch either.
+- **Area/cos(lat) weighting**: negligible effect (0.58 -> 0.59).
+- **NE India / Bangladesh border data artifact**: the paper's Methods section names a specific corrupted
+  grid-cell cluster (Gadgil et al. 2019 mask, JJAS mean/variance jumping in 1971). Checked this dataset's
+  actual NE region (our `monsoon_mask` domain caps at lon 89E, lat 8.25-31.75N) for a pre/post-1971 level
+  shift: none found (means differ by ~0.2mm/day, no gridpoint jumps >2mm/day). Either this file's mask
+  already differs from the raw Gadgil mask, or the bad cluster is outside our domain entirely.
+- **Detrending**: real effect in the right direction (implemented, now default for the correlation
+  matrix) but only closes part of the gap (0.58 -> 0.63, not -> 0.77).
+
+Not yet tried: getting the paper's actual replication code/supplementary methods (best next step if
+available), or re-examining whether the paper's own AIRI is built differently than the JJAS-seasonal-
+mean-anomaly definition used here. If you pick this back up, read the full conversation history for the
+detailed back-and-forth rather than re-deriving from scratch.
 
 ## Conventions
 

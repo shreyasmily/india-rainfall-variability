@@ -50,14 +50,19 @@ large for GitHub. Only code, figures, and documentation are tracked.
   measures of JJAS rainfall variability (standardized anomaly; count of positive-anomaly grid points;
   avg rainy days/season; avg intensity on rainy days; mean anomaly restricted to positive-only /
   negative-only grid points) — see the script docstring for exact definitions. Outputs a 120-year time
-  series CSV (`data/indices/airi_indices.csv`) and a 7-panel figure
-  (`figures/airi_indices_timeseries.png`). Unlike the other scripts here, these are *unweighted* spatial
-  averages (matching the literal definitions), not area/cos(lat)-weighted.
+  series CSV (`data/indices/airi_indices.csv`, each measure plus a `_detrended` version with its
+  1901-2020 linear trend removed) and a 7-panel figure (`figures/airi_indices_timeseries.png`, raw
+  values). Unlike the other scripts here, these are *unweighted* spatial averages (matching the literal
+  definitions), not area/cos(lat)-weighted.
 - `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among all 7 AIRI measures above,
-  as a heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
-  (`data/indices/airi_correlation_matrix.csv`). AIRI/standardized-anomaly/N-positive-gridpoints/mean-
-  rainy-days are all tightly correlated (r≥0.91, largely the same signal); mean intensity is the most
-  independent measure.
+  computed on the **detrended** series (matching the source paper's stated methodology), as a heatmap
+  (`figures/airi_indices_correlation_matrix.png`) and CSV (`data/indices/airi_correlation_matrix.csv`).
+  AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days are all tightly correlated (r≥0.93,
+  largely the same signal); mean intensity and mean positive/negative anomaly are more independent.
+  We're still chasing a specific discrepancy against the source paper's published matrix for the
+  AIRI-vs-mean-intensity cell (paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) —
+  see git history / conversation log for what's been ruled out (aggregation order, rain-weighting,
+  threshold choice, spatial mask artifacts) before picking this back up.
 
 ## Setup
 

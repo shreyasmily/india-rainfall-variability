@@ -7,6 +7,11 @@ Each measure is a different unit (mm/day anomaly, unitless standardized
 anomaly, a raw grid-point count, a day count), so comparing them directly only
 makes sense via a unitless statistic like r - hence this matrix, not e.g. a
 shared-axis overlay of the time series themselves.
+
+Uses the "_detrended" columns (each series' 1901-2020 linear trend removed
+before correlating), matching the source paper's stated methodology - not the
+raw columns. compute_airi_indices.py computes both; this script always uses
+detrended.
 """
 import numpy as np
 import pandas as pd
@@ -25,21 +30,24 @@ LABELS = {
     'mean_positive_anomaly_mm_day': 'Mean pos.\nanomaly',
     'mean_negative_anomaly_mm_day': 'Mean neg.\nanomaly',
 }
-cols = list(LABELS.keys())
+base_cols = list(LABELS.keys())
+detrended_cols = [f'{c}_detrended' for c in base_cols]
 
-corr = df[cols].corr(method='pearson')
+corr = df[detrended_cols].corr(method='pearson')
+corr.index = base_cols
+corr.columns = base_cols
 corr.to_csv('data/indices/airi_correlation_matrix.csv')
-print('Pearson correlation matrix:')
+print('Pearson correlation matrix (detrended series):')
 print(corr.round(2).to_string())
 
-n = len(cols)
+n = len(base_cols)
 fig, ax = plt.subplots(figsize=(9, 8))
 im = ax.imshow(corr.values, cmap='RdBu_r', vmin=-1, vmax=1)
 
 ax.set_xticks(range(n))
 ax.set_yticks(range(n))
-ax.set_xticklabels([LABELS[c] for c in cols], rotation=45, ha='right', fontsize=8)
-ax.set_yticklabels([LABELS[c] for c in cols], fontsize=8)
+ax.set_xticklabels([LABELS[c] for c in base_cols], rotation=45, ha='right', fontsize=8)
+ax.set_yticklabels([LABELS[c] for c in base_cols], fontsize=8)
 
 # Recessive white gridlines between cells (imshow has no native cell grid)
 ax.set_xticks(np.arange(-0.5, n, 1), minor=True)
@@ -58,7 +66,7 @@ cbar.set_label('Pearson correlation coefficient (r)')
 
 ax.set_title(
     'Cross-Correlation: AIRI + 6 Alternate All-India JJAS Rainfall Measures\n'
-    '1901-2020, unitless Pearson r',
+    '1901-2020, detrended, unitless Pearson r',
     fontsize=11,
 )
 

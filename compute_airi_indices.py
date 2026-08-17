@@ -25,6 +25,12 @@ plot_jjas_climatology.py). Rainy-day threshold for measures 3-4: >1 mm/day.
 All "average across grid points" is a SIMPLE (unweighted) mean over valid
 India grid points, matching the literal definitions above - not area/cos(lat)
 weighted like the EOF analysis in the companion enso-sst-analysis project.
+
+Each measure also gets a "_detrended" column: the same 120-year series with
+its 1901-2020 linear least-squares trend subtracted off, matching the source
+paper's stated methodology of detrending each series before cross-correlating
+them (see compute_airi_correlation_matrix.py, which correlates these columns,
+not the raw ones).
 """
 import os
 import xarray as xr
@@ -33,6 +39,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from scipy.signal import detrend
 
 RAINY_DAY_THRESHOLD = 1  # mm/day, for measures 3 and 4
 
@@ -79,10 +86,14 @@ df = pd.DataFrame({
     'mean_negative_anomaly_mm_day': mean_neg_anomaly.values,
 })
 
+index_cols = [c for c in df.columns if c != 'year']
+for col in index_cols:
+    df[f'{col}_detrended'] = detrend(df[col].values, type='linear')
+
 os.makedirs('data/indices', exist_ok=True)
 df.to_csv('data/indices/airi_indices.csv', index=False)
-print(f"Saved data/indices/airi_indices.csv ({len(df)} years)")
-print(df.describe().loc[['mean', 'std', 'min', 'max']].round(2))
+print(f"Saved data/indices/airi_indices.csv ({len(df)} years, {len(index_cols)} measures + detrended versions)")
+print(df[index_cols].describe().loc[['mean', 'std', 'min', 'max']].round(2))
 
 # --- Plot ----------------------------------------------------------------
 fig, axes = plt.subplots(4, 2, figsize=(13, 14), sharex=True)
