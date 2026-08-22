@@ -38,11 +38,15 @@ Two datasets on hand:
   a `_detrended` counterpart column (linear 1901-2020 trend removed); `compute_airi_correlation_matrix.py`
   always correlates the detrended versions, matching the source paper's methodology.
 
-`compute_moron_eof_analysis.py` runs EOF decomposition (cos-lat weighted, via the `eofs` library, same
-convention as the companion enso-sst-analysis project) on standardized (per-gridpoint) versions of the
-same three fields underlying measures 3/4 of the AIRI CSV (rainfall mean, rainy-day frequency, mean
-intensity), extracting EOF1/PC1 and EOF2/PC2 for each. Needs `data/indices/airi_indices.csv` to exist
-first (used only to fix PC1's sign convention against AIRI).
+`compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
+subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
+convention as the companion enso-sst-analysis project) on detrended-then-standardized (per-gridpoint)
+versions of the same three fields underlying measures 3/4 of the AIRI CSV (rainfall mean, rainy-day
+frequency, mean intensity), extracting EOF1/PC1 and EOF2/PC2 for each. Needs
+`data/indices/airi_indices.csv` to exist first (used only to fix PC1's sign convention against AIRI's
+detrended index). Note `scipy.signal.detrend` solves one batched least-squares fit across every grid
+point at once - a NaN anywhere fails the whole call, not just that column - so NaN cells must be
+filled before detrending and re-masked after, not left as NaN going in.
 
 Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
 series themselves (not yet derived).

@@ -5,20 +5,25 @@ on rainy days. Extracts and plots the first two modes (EOF1/PC1, EOF2/PC2)
 for each field.
 
 Field definitions match compute_airi_indices.py exactly (same per-gridpoint,
-per-year quantities, same >1mm/day rainy-day threshold), just standardized
-per grid point instead of spatially averaged into a single index:
-    standardized(year, lat, lon) = (value - climatological mean) / climatological std
-computed separately at each grid point across the 1901-2020 record.
+per-year quantities, same >1mm/day rainy-day threshold). Each grid point's
+1901-2020 series is linearly detrended (least-squares trend removed) before
+standardizing, matching the source paper's stated methodology (same
+detrending already applied for compute_airi_correlation_matrix.py):
+    detrended(year, lat, lon) = value(year, lat, lon) - linear_trend(year, lat, lon)
+    standardized(year, lat, lon) = (detrended - its mean) / its std
+computed separately at each grid point across the record (the mean after
+detrending is ~0 by construction, kept explicit for clarity).
 
 EOF decomposition uses cos(latitude) area weighting and fills the invalid
 (non-India) domain with 0 before solving, matching the convention in the
 companion enso-sst-analysis project's eofAnalysis_fixed.py.
 
 PC1's sign for each variable is flipped, if needed, so it correlates
-positively with AIRI's raw anomaly index (data/indices/airi_indices.csv) -
-EOF sign is mathematically arbitrary, so this just fixes the physically
-intuitive convention (positive PC1 = wetter/more frequent/more intense than
-normal). EOF2 has no equally natural anchor, so its raw solver sign is kept.
+positively with AIRI's detrended raw-anomaly index
+(data/indices/airi_indices.csv, airi_raw_anomaly_mm_day_detrended) - EOF sign
+is mathematically arbitrary, so this just fixes the physically intuitive
+convention (positive PC1 = wetter/more frequent/more intense than normal).
+EOF2 has no equally natural anchor, so its raw solver sign is kept.
 """
 import ssl
 import certifi
@@ -32,6 +37,7 @@ import matplotlib.gridspec as gridspec
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from eofs.xarray import Eof
+from scipy.signal import detrend as scipy_detrend
 
 # This machine's Windows certificate store has a cert ssl.create_default_context()
 # can't parse. That breaks dask's scheduler-detection (triggered here when the EOF
@@ -64,9 +70,16 @@ intensity_per_gridpoint = jjas.where(rainy_mask).groupby('time.year').mean('time
 
 
 def standardize(field):
-    clim_mean = field.mean('year', skipna=True)
-    clim_std = field.std('year', ddof=1, skipna=True)
-    return (field - clim_mean) / clim_std
+    # scipy.signal.detrend solves a single batched least-squares fit across
+    # every (lat,lon) column at once - a NaN anywhere fails the whole batch,
+    # not just that column. Fill NaN cells with a placeholder to detrend
+    # (their output is meaningless but gets discarded next), then restore NaN
+    # outside India so climatological mean/std below stay correct.
+    detrended_vals = scipy_detrend(field.fillna(0).values, axis=0, type='linear')
+    detrended = xr.DataArray(detrended_vals, dims=field.dims, coords=field.coords).where(valid)
+    clim_mean = detrended.mean('year', skipna=True)
+    clim_std = detrended.std('year', ddof=1, skipna=True)
+    return (detrended - clim_mean) / clim_std
 
 
 FIELDS = {
@@ -75,7 +88,7 @@ FIELDS = {
     'mean_intensity': ('Mean Rainfall Intensity', standardize(intensity_per_gridpoint)),
 }
 
-airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day']
+airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day_detrended']
 
 lat_vals = ds.lat.values
 lon_vals = ds.lon.values
@@ -137,7 +150,7 @@ def render(varname, label, field):
         ax_ts.grid(True, alpha=0.3)
 
     fig.suptitle(
-        f'EOF Analysis: JJAS Standardized {label} Anomalies, 1901-2020\n'
+        f'EOF Analysis: JJAS Standardized {label} Anomalies, 1901-2020 (detrended)\n'
         f'(cos-lat weighted, {RAINY_DAY_THRESHOLD}mm/day rainy-day threshold where applicable)',
         fontsize=12, fontweight='bold',
     )

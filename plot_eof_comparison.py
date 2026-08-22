@@ -3,7 +3,8 @@ Side-by-side comparison of 4 EOF spatial patterns from the Moron et al. (2017)
 style analysis in compute_moron_eof_analysis.py: rainfall mean EOF1 and EOF2,
 plus rainy-day-frequency EOF1 and mean-intensity EOF1 (their dominant modes).
 
-Recomputes the same standardized fields and EOF solves as
+Recomputes the same standardized (linearly detrended per grid point, then
+standardized - see compute_moron_eof_analysis.py) fields and EOF solves as
 compute_moron_eof_analysis.py (see that script for full methodology notes) -
 this one just lays out a specific subset of spatial patterns together for
 direct visual comparison, without the PC time series panels.
@@ -19,6 +20,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from eofs.xarray import Eof
+from scipy.signal import detrend as scipy_detrend
 
 _orig_create_default_context = ssl.create_default_context
 
@@ -46,9 +48,16 @@ intensity_per_gridpoint = jjas.where(rainy_mask).groupby('time.year').mean('time
 
 
 def standardize(field):
-    clim_mean = field.mean('year', skipna=True)
-    clim_std = field.std('year', ddof=1, skipna=True)
-    return (field - clim_mean) / clim_std
+    # scipy.signal.detrend solves a single batched least-squares fit across
+    # every (lat,lon) column at once - a NaN anywhere fails the whole batch,
+    # not just that column. Fill NaN cells with a placeholder to detrend
+    # (their output is meaningless but gets discarded next), then restore NaN
+    # outside India so climatological mean/std below stay correct.
+    detrended_vals = scipy_detrend(field.fillna(0).values, axis=0, type='linear')
+    detrended = xr.DataArray(detrended_vals, dims=field.dims, coords=field.coords).where(valid)
+    clim_mean = detrended.mean('year', skipna=True)
+    clim_std = detrended.std('year', ddof=1, skipna=True)
+    return (detrended - clim_mean) / clim_std
 
 
 FIELDS = {
@@ -57,7 +66,7 @@ FIELDS = {
     'mean_intensity': standardize(intensity_per_gridpoint),
 }
 
-airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day']
+airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day_detrended']
 
 lat_vals = ds.lat.values
 lon_vals = ds.lon.values
@@ -110,7 +119,7 @@ for ax, (eof_data, var, title) in zip(axes.flat, panels):
     ax.set_title(f'{title} ({var * 100:.1f}% variance)', fontsize=10)
 
 fig.suptitle(
-    'JJAS Standardized Anomaly EOF Patterns, 1901-2020\n(Moron et al. 2017 style, cos-lat weighted)',
+    'JJAS Standardized Anomaly EOF Patterns, 1901-2020 (detrended)\n(Moron et al. 2017 style, cos-lat weighted)',
     fontsize=13, fontweight='bold',
 )
 plt.tight_layout(rect=[0, 0, 1, 0.94])

@@ -65,13 +65,16 @@ large for GitHub. Only code, figures, and documentation are tracked.
   threshold choice, spatial mask artifacts) before picking this back up.
 - `compute_moron_eof_analysis.py` — EOF analysis (Moron et al. 2017 style) of JJAS standardized
   anomalies for rainfall mean, rainy-day frequency, and mean intensity (same per-gridpoint definitions
-  as `compute_airi_indices.py`, standardized per grid point instead of spatially averaged). cos(lat)-
-  weighted, matching the companion enso-sst-analysis project's EOF convention. Outputs one 4-panel
-  figure per variable (EOF1/PC1, EOF2/PC2) — `figures/eof_rainfall_mean.png`,
-  `figures/eof_rainy_day_frequency.png`, `figures/eof_mean_intensity.png`. PC1 sign is fixed (if needed)
-  to correlate positively with AIRI. Rainfall-mean and rainy-day-frequency EOF1 explain 17.7%/31.0% of
-  variance and correlate strongly with AIRI (r=0.95/0.91) — mean intensity's EOF1 explains far less
-  (7.1%) and correlates weakly (r=0.26), consistent with the correlation matrix above.
+  as `compute_airi_indices.py`, each grid point linearly detrended then standardized instead of
+  spatially averaged - matches the source paper's stated methodology, same as
+  `compute_airi_correlation_matrix.py`). cos(lat)-weighted, matching the companion enso-sst-analysis
+  project's EOF convention. Outputs one 4-panel figure per variable (EOF1/PC1, EOF2/PC2) —
+  `figures/eof_rainfall_mean.png`, `figures/eof_rainy_day_frequency.png`,
+  `figures/eof_mean_intensity.png`. PC1 sign is fixed (if needed) to correlate positively with AIRI's
+  detrended index. Rainfall-mean and rainy-day-frequency EOF1 explain 18.0%/31.8% of variance and
+  correlate strongly with AIRI (r=0.96/0.93) — mean intensity's EOF1 explains far less (6.0%) and is
+  now essentially uncorrelated with AIRI once detrended (r=0.05, down from 0.26 raw) — most of that
+  original correlation was apparently the shared long-term trend, not real year-to-year covariability.
 - `plot_eof_comparison.py` — the 4 headline spatial patterns from the above (rainfall mean EOF1+EOF2,
   rainy-day-frequency EOF1, mean-intensity EOF1) laid out together in one figure
   (`figures/eof_comparison.png`), maps only (no PC time series). Recomputes the same EOFs rather than
