@@ -101,6 +101,8 @@ ax.tick_params(which='minor', bottom=False, left=False)
 
 for i in range(n):
     for j in range(n):
+        if j > i:
+            continue  # matrix is symmetric - only annotate the diagonal and lower triangle
         val = corr.values[i, j]
         text_color = 'white' if abs(val) > 0.6 else 'black'
         ax.text(j, i, f'{val:.2f}', ha='center', va='center', color=text_color, fontsize=8)
