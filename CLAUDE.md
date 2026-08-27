@@ -203,11 +203,18 @@ already applied and doesn't touch this open issue.
   three, which was backwards for intensity specifically - there's no way to know the "right" sign for an
   EOF a priori, only by checking against a reference like the paper's reported values. If you add a 4th
   EOF variable, check its sign against the paper rather than assuming uniform-positive is safe.
-- Sub-India region masks (`compute_subregion_indices.py`) are irregular, data-driven regions, not simple
-  lat/lon boxes - don't simplify them back to a box "for clarity" without checking with the user first.
-  CMZ in particular came out much bigger than the commonly-cited simplified box used elsewhere (~64% of
-  the valid domain) - this was verified as a faithful implementation of the exact boundary curves given,
-  not a bug, but hasn't been independently confirmed against the source paper's actual figure. Always
-  regenerate and look at `figures/subregion_masks.png` after touching region-boundary logic - it's easy
-  to introduce a subtle sign/direction error (e.g. north vs south boundary swapped, east vs west of a
+- Sub-India region masks (`compute_subregion_indices.py`, and duplicated in
+  `plot_eof_comparison_with_regions.py`) are irregular, data-driven regions, not simple lat/lon boxes -
+  don't simplify them back to a box "for clarity" without checking with the user first. CMZ's boundary
+  curves were corrected once already: an earlier version held the north/south curves' endpoint values
+  flat past their covered longitude range (`numpy.interp`'s default), which let the mask bleed into
+  northeast India and covered ~64% of India's valid domain. The corrected version explicitly caps CMZ to
+  `CMZ_LON_RANGE = (72.2, 88.5)` - outside that longitude range the mask is always False, no flat-holding
+  - giving a compact ~1560-gridpoint band that stops before the northeast, matching a much more plausible
+  "Central Monsoon Zone" shape. If CMZ's boundary curves change again, remember this project's default
+  numpy.interp behavior (flat extrapolation) is usually NOT what you want for a region that's meant to
+  have hard edges - always check whether an explicit lon/lat range cap is needed alongside the curve
+  interpolation, not just the curve values themselves. Always regenerate and look at
+  `figures/subregion_masks.png` after touching region-boundary logic in either script - it's easy to
+  introduce a subtle sign/direction error (e.g. north vs south boundary swapped, east vs west of a
   per-latitude edge) that still produces a plausible-looking but wrong mask.

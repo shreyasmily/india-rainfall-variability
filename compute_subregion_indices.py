@@ -6,13 +6,14 @@ Region definitions (from the user, not independently derived):
   - CMZ: the band between two irregular north/south boundary curves from
     Gadgil et al. (2019) Fig. 3(a), each varying with longitude (not a
     lat/lon box). At each grid point's longitude, the north and south limits
-    are linearly interpolated from the boundary vertices below; longitudes
-    outside a curve's covered range hold that curve's nearest endpoint flat
-    (numpy.interp's default behavior - no extrapolation). A grid point is in
-    CMZ if its latitude falls between the interpolated south and north
-    limits, intersected with the dataset's own `valid` (monsoon_mask) domain
-    - this naturally handles the coastline/east-west closing edges without
-    needing them specified explicitly.
+    are linearly interpolated from the boundary vertices below. Unlike a
+    naive interpolation, this band does NOT extend into northeast India -
+    it's explicitly capped to lon [72.2, 88.5] (a grid point outside that
+    range is never in CMZ, regardless of latitude), rather than holding the
+    nearest boundary vertex flat past the endpoints. A grid point is in CMZ
+    if its longitude is in that range AND its latitude falls between the
+    interpolated south and north limits, intersected with the dataset's own
+    `valid` (monsoon_mask) domain.
   - WG: grid points with climatological mean JJAS rainy days (>1mm/day,
     matching this project's threshold convention) exceeding 100 days.
     Checked empirically (see conversation) that this threshold alone, with
@@ -64,13 +65,16 @@ RAINY_DAY_THRESHOLD = 1  # mm/day, matches compute_airi_indices.py
 WG_RAINY_DAYS_THRESHOLD = 100
 DATA_EXTENT = [67.0, 90.0, 7.25, 32.75]
 
-# (lon, lat) pairs, Gadgil et al. (2019) Fig. 3(a)
+# (lon, lat) pairs, Gadgil et al. (2019) Fig. 3(a). Band spans lon [72.2, 88.5]
+# only - does not extend into northeast India (see CMZ_LON_RANGE below).
 NORTH_BOUNDARY = [
-    (74.4, 31.8), (75.6, 31.5), (76.4, 30.8), (77.1, 30.3), (77.6, 29.6), (78.2, 29.2),
-    (78.7, 28.7), (79.5, 28.2), (80.3, 27.7), (80.9, 27.2), (81.5, 26.5), (82.3, 26.0),
-    (83.1, 25.8), (83.9, 25.4), (84.7, 25.3), (85.5, 25.1), (86.3, 25.0), (87.1, 25.1),
-    (87.9, 25.1), (88.3, 25.2), (88.6, 25.9), (89.1, 27.1), (92.2, 27.1), (92.6, 26.8),
-    (93.0, 26.6), (93.4, 26.3), (93.8, 26.1), (94.2, 25.8), (94.6, 25.5), (94.9, 25.4),
+    (73.2, 29.5), (73.5, 29.4), (73.9, 29.2), (74.3, 29.0), (74.6, 28.8), (74.9, 28.7),
+    (75.2, 28.5), (75.7, 28.3), (76.0, 28.0), (76.3, 27.8), (76.9, 27.6), (77.2, 27.4),
+    (77.5, 27.1), (77.8, 26.9), (78.2, 26.8), (78.5, 26.6), (79.0, 26.4), (79.6, 26.1),
+    (79.9, 26.0), (80.4, 25.8), (80.9, 25.4), (81.3, 25.2), (81.7, 25.0), (82.0, 24.8),
+    (82.3, 24.6), (82.7, 24.5), (83.0, 24.4), (83.3, 24.3), (83.6, 24.2), (84.1, 24.0),
+    (84.5, 24.0), (85.8, 23.9), (86.2, 23.8), (86.5, 23.8), (86.9, 23.9), (87.5, 23.9),
+    (87.8, 23.9), (88.1, 23.9), (88.5, 23.9),
 ]
 SOUTH_BOUNDARY = [
     (72.2, 22.0), (72.5, 22.2), (73.8, 22.3), (74.2, 22.1), (74.5, 21.9), (74.8, 21.7),
@@ -79,6 +83,7 @@ SOUTH_BOUNDARY = [
     (79.8, 19.0), (80.7, 18.8), (81.1, 18.8), (81.5, 18.8), (81.8, 18.8), (83.1, 18.7),
     (83.9, 18.8), (84.5, 19.0), (84.9, 19.2), (87.4, 21.6), (87.7, 21.7), (88.3, 21.8),
 ]
+CMZ_LON_RANGE = (72.2, 88.5)
 SEI_LAT_LIMIT = 18.0
 
 ds = xr.open_dataset('data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020.nc')
@@ -96,7 +101,8 @@ north_lons, north_lats = zip(*sorted(NORTH_BOUNDARY))
 south_lons, south_lats = zip(*sorted(SOUTH_BOUNDARY))
 north_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': north_lons, 'fp': north_lats})
 south_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': south_lons, 'fp': south_lats})
-cmz_mask = valid & (lat2d >= south_limit) & (lat2d <= north_limit)
+cmz_lon_in_range = (lon2d >= CMZ_LON_RANGE[0]) & (lon2d <= CMZ_LON_RANGE[1])
+cmz_mask = valid & cmz_lon_in_range & (lat2d >= south_limit) & (lat2d <= north_limit)
 
 # --- WG ------------------------------------------------------------------
 rainy_mask = jjas > RAINY_DAY_THRESHOLD

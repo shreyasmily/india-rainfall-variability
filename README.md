@@ -99,12 +99,15 @@ large for GitHub. Only code, figures, and documentation are tracked.
   loading saved output — see this script if you need to change what the comparison shows.
 - `compute_subregion_indices.py` — detrended mean JJAS rainfall anomaly for 3 sub-India regions: CMZ
   (Central Monsoon Zone, the band between two irregular north/south boundary curves digitized from
-  Gadgil et al. 2019 Fig. 3(a) — **turned out to cover ~64% of India's valid domain, a big diagonal band
-  from Gujarat/Rajasthan up to ~32°N, much larger than the commonly-cited simplified ~74-86°E,16-26°N
-  box** — verify this matches the actual paper figure), WG (Western Ghats — grid points with >100
-  climatological mean JJAS rainy days; checked empirically that this threshold alone, no extra
-  geographic restriction needed, is already confined to the coastal strip lon 73-76.75°E, lat 9.5-19°N),
-  and SEI (Southeast India — east of WG's per-latitude eastern edge, south of 18°N). Outputs
+  Gadgil et al. 2019 Fig. 3(a), explicitly capped to lon [72.2°E, 88.5°E] — the band does not extend into
+  northeast India, unlike an earlier version of these boundaries that held the curve's endpoint flat past
+  its covered range and ended up covering ~64% of India's valid domain. The corrected version is a
+  compact ~1560-gridpoint diagonal band from Gujarat/Rajasthan through MP/Chhattisgarh/Jharkhand to West
+  Bengal, capped before the northeast — a much more plausible "Central Monsoon Zone" shape), WG (Western
+  Ghats — grid points with >100 climatological mean JJAS rainy days; checked empirically that this
+  threshold alone, no extra geographic restriction needed, is already confined to the coastal strip
+  lon 73-76.75°E, lat 9.5-19°N), and SEI (Southeast India — east of WG's per-latitude eastern edge, south
+  of 18°N). Outputs
   `data/indices/subregion_indices.csv` and a mask-verification map (`figures/subregion_masks.png`) —
   look at that figure before trusting the indices, since region boundaries are easy to get subtly wrong.
 - `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures, 4 EOF
@@ -117,7 +120,7 @@ large for GitHub. Only code, figures, and documentation are tracked.
   AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all tightly
   correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since EOF1
   dominates that field's variance); mean intensity and mean positive/negative anomaly are more
-  independent. CMZ correlates very strongly with AIRI (r=0.93, expected given its size); SEI is the most
+  independent. CMZ correlates very strongly with AIRI (r=0.90, expected given its size); SEI is the most
   distinct region, anti-correlating with both PC2-amount (r=-0.57) and PC1-intensity (r=-0.58) —
   consistent with SEI being governed more by the northeast monsoon than the southwest-monsoon signal
   everything else here measures. -NINO3.4 vs AIRI = 0.54 (matches the standalone sanity check in
