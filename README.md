@@ -62,12 +62,19 @@ large for GitHub. Only code, figures, and documentation are tracked.
   project's EOF convention. Outputs one 4-panel figure per variable (EOF1/PC1, EOF2/PC2) —
   `figures/eof_rainfall_mean.png`, `figures/eof_rainy_day_frequency.png`,
   `figures/eof_mean_intensity.png` — plus all 6 PC time series (PC1+PC2 x 3 variables) to
-  `data/indices/eof_pcs.csv`, for `compute_airi_correlation_matrix.py` to fold in. PC1 sign is fixed (if
-  needed) to correlate positively with AIRI's detrended index. Rainfall-mean and rainy-day-frequency
-  EOF1 explain 18.0%/31.8% of variance and correlate strongly with AIRI (r=0.96/0.93) — mean intensity's
-  EOF1 explains far less (6.0%) and is now essentially uncorrelated with AIRI once detrended (r=0.05,
-  down from 0.26 raw) — most of that original correlation was apparently the shared long-term trend, not
-  real year-to-year covariability.
+  `data/indices/eof_pcs.csv`, for `compute_airi_correlation_matrix.py` to fold in. PC1's sign convention
+  is **not** uniform across variables (`TARGET_SIGN` in the script): rainfall amount and rainy-day
+  frequency are fixed to correlate POSITIVELY with AIRI, but mean intensity is fixed to correlate
+  NEGATIVELY - matching the source paper's own published matrix, where PC1-intensity is anti-correlated
+  with AIRI while the other two are strongly positive. (An earlier version of this script forced positive
+  correlation for all three, which was backwards for intensity specifically - EOF sign is arbitrary, so
+  there was no way to know without checking against the paper's actual reported signs.) Rainfall-mean
+  and rainy-day-frequency EOF1 explain 18.0%/31.8% of variance and correlate strongly with AIRI
+  (r=0.96/0.93) — mean intensity's EOF1 explains far less (6.0%) and now correlates only weakly
+  negatively with AIRI once detrended (r=-0.05) — sign now matches the paper's reported anti-correlation,
+  though we don't have their exact magnitude to check against (this is a different, EOF-based quantity
+  from the spatially-averaged "mean intensity" measure in the correlation-matrix discrepancy noted below,
+  which is still open).
 - `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures plus 4
   EOF PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity — matching the extra
   rows/columns in the source paper's own published matrix), all on **detrended** series, as an 11x11
@@ -77,8 +84,9 @@ large for GitHub. Only code, figures, and documentation are tracked.
   AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all tightly
   correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since EOF1
   dominates that field's variance); mean intensity and mean positive/negative anomaly are more
-  independent. Notable new finding: PC2-amount and PC1-intensity are strongly anti-correlated (r=-0.73). We're still chasing a specific discrepancy
-  against the source paper's published matrix for the AIRI-vs-mean-intensity cell (paper reports r=0.77;
+  independent. Notable finding: PC2-amount and PC1-intensity are strongly correlated (r=0.73). We're
+  still chasing a specific magnitude discrepancy against the source paper's published matrix for the
+  AIRI-vs-mean-intensity cell (the spatially-averaged measure, not the PC1 above - paper reports r=0.77;
   ours currently gives 0.63 detrended, 0.58 raw) — see git history / conversation log for what's been
   ruled out (aggregation order, rain-weighting, threshold choice, spatial mask artifacts) before picking
   this back up.

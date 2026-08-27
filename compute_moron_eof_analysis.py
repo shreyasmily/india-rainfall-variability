@@ -18,12 +18,16 @@ EOF decomposition uses cos(latitude) area weighting and fills the invalid
 (non-India) domain with 0 before solving, matching the convention in the
 companion enso-sst-analysis project's eofAnalysis_fixed.py.
 
-PC1's sign for each variable is flipped, if needed, so it correlates
-positively with AIRI's detrended raw-anomaly index
-(data/indices/airi_indices.csv, airi_raw_anomaly_mm_day_detrended) - EOF sign
-is mathematically arbitrary, so this just fixes the physically intuitive
-convention (positive PC1 = wetter/more frequent/more intense than normal).
-EOF2 has no equally natural anchor, so its raw solver sign is kept.
+PC1's sign for each variable is fixed against AIRI's detrended raw-anomaly
+index (data/indices/airi_indices.csv, airi_raw_anomaly_mm_day_detrended) -
+EOF sign is mathematically arbitrary, so this just fixes it to a known
+convention rather than whatever the solver happens to produce. Rainfall
+amount and rainy-day frequency are flipped (if needed) to correlate
+POSITIVELY with AIRI; mean intensity is flipped (if needed) to correlate
+NEGATIVELY - matching the source paper's own published correlation matrix,
+where PC1-intensity is anti-correlated with AIRI while the other two are
+strongly positively correlated (see TARGET_SIGN below). EOF2 has no equally
+natural anchor, so its raw solver sign is kept.
 
 Also saves all 6 PC time series (PC1+PC2 x 3 variables) to
 data/indices/eof_pcs.csv, for compute_airi_correlation_matrix.py to fold into
@@ -94,6 +98,14 @@ FIELDS = {
 
 airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day_detrended']
 
+# Target sign of PC1's correlation with AIRI, per variable. Rainfall amount and
+# rainy-day frequency: positive (more/wetter -> higher AIRI, matches the source
+# paper's published matrix). Mean intensity: NEGATIVE - the paper's own matrix
+# shows PC1-intensity anti-correlated with AIRI, so forcing positive here (as
+# an earlier version of this script did, assuming the same convention as the
+# other two) was backwards for this one variable specifically.
+TARGET_SIGN = {'rainfall_mean': 1, 'rainy_day_frequency': 1, 'mean_intensity': -1}
+
 lat_vals = ds.lat.values
 lon_vals = ds.lon.values
 weights_2d = np.cos(np.deg2rad(lat_vals))
@@ -109,7 +121,8 @@ def render(varname, label, field):
 
     pc1_vals = pcs[:, 0].values
     r = np.corrcoef(pc1_vals, airi.reindex(field_filled['time'].values).values)[0, 1]
-    sign1 = 1 if r >= 0 else -1
+    natural_sign = 1 if r >= 0 else -1
+    sign1 = natural_sign * TARGET_SIGN[varname]
     print(f"{varname}: EOF1 {float(variance[0]) * 100:.1f}% var (r with AIRI: {r * sign1:+.2f} after sign fix), "
           f"EOF2 {float(variance[1]) * 100:.1f}% var")
 

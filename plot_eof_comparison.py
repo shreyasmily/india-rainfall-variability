@@ -68,26 +68,33 @@ FIELDS = {
 
 airi = pd.read_csv('data/indices/airi_indices.csv').set_index('year')['airi_raw_anomaly_mm_day_detrended']
 
+# Target sign of PC1's correlation with AIRI, per variable - see
+# compute_moron_eof_analysis.py for why mean_intensity is negative (matches
+# the source paper's published matrix, where PC1-intensity anti-correlates
+# with AIRI while the other two are strongly positively correlated).
+TARGET_SIGN = {'rainfall_mean': 1, 'rainy_day_frequency': 1, 'mean_intensity': -1}
+
 lat_vals = ds.lat.values
 lon_vals = ds.lon.values
 weights_2d = np.cos(np.deg2rad(lat_vals))
 weights_2d = np.tile(weights_2d[:, np.newaxis], (1, len(lon_vals)))
 
 
-def solve(field):
+def solve(field, varname):
     field_filled = field.where(valid).fillna(0).rename({'year': 'time'})
     solver = Eof(field_filled, weights=weights_2d)
     eofs_ = solver.eofs(neofs=2)
     pcs = solver.pcs(npcs=2)
     variance = solver.varianceFraction(neigs=2)
     r = np.corrcoef(pcs[:, 0].values, airi.reindex(field_filled['time'].values).values)[0, 1]
-    sign1 = 1 if r >= 0 else -1
+    natural_sign = 1 if r >= 0 else -1
+    sign1 = natural_sign * TARGET_SIGN[varname]
     return eofs_[0] * sign1, float(variance[0]), eofs_[1], float(variance[1])
 
 
-rf_eof1, rf_var1, rf_eof2, rf_var2 = solve(FIELDS['rainfall_mean'])
-freq_eof1, freq_var1, _, _ = solve(FIELDS['rainy_day_frequency'])
-int_eof1, int_var1, _, _ = solve(FIELDS['mean_intensity'])
+rf_eof1, rf_var1, rf_eof2, rf_var2 = solve(FIELDS['rainfall_mean'], 'rainfall_mean')
+freq_eof1, freq_var1, _, _ = solve(FIELDS['rainy_day_frequency'], 'rainy_day_frequency')
+int_eof1, int_var1, _, _ = solve(FIELDS['mean_intensity'], 'mean_intensity')
 
 panels = [
     (rf_eof1, rf_var1, 'Rainfall Mean — EOF1'),

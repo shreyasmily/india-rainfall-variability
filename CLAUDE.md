@@ -136,6 +136,11 @@ available), or re-examining whether the paper's own AIRI is built differently th
 mean-anomaly definition used here. If you pick this back up, read the full conversation history for the
 detailed back-and-forth rather than re-deriving from scratch.
 
+Note this is a DIFFERENT quantity from PC1-intensity (the EOF-based measure in `eof_pcs.csv`) - don't
+conflate the two when comparing against the paper's matrix. PC1-intensity's sign was separately corrected
+(see Conventions below) once it became clear the paper shows it anti-correlated with AIRI; that fix is
+already applied and doesn't touch this open issue.
+
 ## Conventions
 
 - Map figures: crop to the data's actual extent rather than the full lat/lon grid (which extends past
@@ -170,3 +175,11 @@ detailed back-and-forth rather than re-deriving from scratch.
   is a roughly constant ~11-13 day offset (slope ~1.04), not the proportional/wetness-scaling bias the
   buggy version suggested (slope ~1.21). If you add another rainy-day-threshold script, apply this fix
   from the start rather than after the fact.
+- EOF sign conventions are picked per-variable, not uniformly. `compute_moron_eof_analysis.py` /
+  `plot_eof_comparison.py`'s `TARGET_SIGN` dict fixes rainfall-amount and rainy-day-frequency PC1 to
+  correlate POSITIVELY with AIRI, but mean-intensity PC1 to correlate NEGATIVELY - matching the source
+  paper's own published correlation matrix (PC1-intensity is anti-correlated with AIRI there, while the
+  other two are strongly positive). An earlier version forced positive correlation uniformly for all
+  three, which was backwards for intensity specifically - there's no way to know the "right" sign for an
+  EOF a priori, only by checking against a reference like the paper's reported values. If you add a 4th
+  EOF variable, check its sign against the paper rather than assuming uniform-positive is safe.
