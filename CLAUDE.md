@@ -44,6 +44,10 @@ Two datasets on hand:
   `compute_subregion_indices.py`. Region boundary definitions came from the user, not derived - see that
   script's docstring for the exact CMZ boundary curve vertices, the WG rainy-day threshold, and the SEI
   rule. Has both raw and `_detrended` columns, same convention as `airi_indices.csv`.
+- `data/sst/ersst.v5.mnmean.nc` — NOAA ERSSTv5 monthly SST, global 2°, 1854-present, downloaded whole
+  (not pre-subset to 1901-2020) by `fetch_ersst.py` from NOAA PSL. Longitude is 0-360°, not -180/180 -
+  convert before any Pacific/Indian Ocean region selection (e.g. Nino 3.4, DMI), same gotcha as the
+  companion enso-sst-analysis project's SST handling.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
@@ -55,8 +59,9 @@ detrended index). Note `scipy.signal.detrend` solves one batched least-squares f
 point at once - a NaN anywhere fails the whole call, not just that column - so NaN cells must be
 filled before detrendin2g and re-masked after, not left as NaN going in.
 
-Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
-series themselves (not yet derived).
+Still needed: the ENSO (e.g. Nino 3.4) and IOD (Dipole Mode Index) index time series computed from the
+SST record (not yet derived) - this is the next step, needed to correlate against the 14-column
+AIRI/EOF/sub-region matrix already built.
 
 `data/` is gitignored — do not assume its contents are committed. Update the data table in README.md
 as datasets are added or computed.
@@ -81,9 +86,11 @@ Separately, PowerShell/`.NET` HTTP calls are unaffected by this bug (different S
 the underlying data-source reachability was diagnosed.
 
 Also worth knowing: NOAA's own domains (`ncei.noaa.gov`, `ngdc.noaa.gov`, `psl.noaa.gov`) all timed out
-from this network when checked; other hosts (GitHub, AWS S3, USGS, GEBCO, OpenTopography) were reachable.
-If a script needs NOAA-hosted data (e.g. HadISST/ERSST mirrors), check reachability first rather than
-assuming the NOAA host will respond.
+from this network the first time they were checked (hence `fetch_elevation.py` using an AWS-hosted
+alternative instead), but were reachable again later (`fetch_ersst.py` downloaded straight from
+`downloads.psl.noaa.gov` with no issue) - this network's NOAA reachability is apparently intermittent,
+not a permanent block. Check reachability fresh each time rather than assuming either outcome from a
+past session.
 
 ## Environment gotcha: PATH order breaks matplotlib rendering
 

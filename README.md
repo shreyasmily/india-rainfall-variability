@@ -10,7 +10,8 @@ teleconnection problem.
 
 ## Status
 
-Early stage — rainfall climatology figures done, SST/index data still to come.
+Rainfall climatology figures, AIRI/EOF/sub-region indices, and the SST record are done. ENSO/IOD index
+computation from the SST record is the next step.
 
 ## Data
 
@@ -18,7 +19,7 @@ Early stage — rainfall climatology figures done, SST/index data still to come.
 |---|---|---|
 | IMD gridded daily rainfall, 0.25°, monsoon-masked, 1901–2020 | On hand | `data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020.nc` |
 | Surface elevation, regridded to the IMD 0.25° grid | On hand — built by `fetch_elevation.py` from AWS-hosted Terrarium terrain tiles | `data/elevation/india_elevation_0p25deg.nc` |
-| 120-year SST record (e.g. HadISST / ERSSTv5) | Not yet obtained | will go in `data/sst/` |
+| ERSSTv5 monthly SST, global 2°, 1854-present | On hand — downloaded by `fetch_ersst.py` from NOAA PSL | `data/sst/ersst.v5.mnmean.nc` |
 | ENSO index (e.g. Niño 3.4) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | IOD index (Dipole Mode Index) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | AIRI + 6 alternate measures | On hand — computed by `compute_airi_indices.py` | `data/indices/airi_indices.csv` |
@@ -32,6 +33,11 @@ large for GitHub. Only code, figures, and documentation are tracked.
 - `fetch_elevation.py` — one-time data prep. Downloads AWS-hosted Terrarium elevation tiles and
   area-averages them onto the IMD rainfall grid's exact lat/lon coordinates. Run once before any script
   that needs `data/elevation/india_elevation_0p25deg.nc`.
+- `fetch_ersst.py` — one-time data download. NOAA ERSSTv5 monthly SST, global 2°, from NOAA PSL
+  (`downloads.psl.noaa.gov`) — a single ~157MB file covering 1854-present (not just 1901-2020; kept
+  whole, subset by whatever script computes ENSO/IOD indices next). Longitude is 0-360°, not -180/180 —
+  convert before any Pacific/Indian Ocean region selection, same gotcha handled in the companion
+  enso-sst-analysis project.
 - `plot_jjas_climatology.py` — climatological JJAS mean rainfall (shaded) and interannual std. dev.
   (contoured), in 4 framing variants. See `figures/`.
 - `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with
