@@ -62,10 +62,11 @@ Two datasets on hand:
   `compute_airi_correlation_matrix.py`, reproducing the source paper's matrix structure.
 - `figures/teleconnection_correlation_maps.png` — grid-point-by-grid-point Pearson r maps (2x3: rows
   -NINO3.4 / DMI N3.4-residual, columns amount/frequency/intensity), built by
-  `plot_teleconnection_correlation_maps.py`. Each rainfall field detrended per grid point (not
-  standardized - Pearson r is invariant to that). -NINO3.4 correlates broadly and coherently with amount
-  and frequency across nearly all of India, weaker/noisier for intensity; DMI residual is patchier and
-  weaker across all three.
+  `plot_teleconnection_correlation_maps.py`, with CMZ/WG/SEI region boundaries overlaid. Each rainfall
+  field detrended per grid point (not standardized - Pearson r is invariant to that). Shared colorbar is
+  scaled to [-vmax, vmax] (vmax = max |r| actually plotted, ~0.6) rather than fixed [-1, 1], for better
+  spatial contrast. -NINO3.4 correlates broadly and coherently with amount and frequency across nearly
+  all of India, weaker/noisier for intensity; DMI residual is patchier and weaker across all three.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same

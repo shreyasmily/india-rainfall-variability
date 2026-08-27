@@ -138,13 +138,17 @@ large for GitHub. Only code, figures, and documentation are tracked.
   lobe of both rainfall-mean EOF2 and mean-intensity EOF1, while CMZ sits in the positive/red lobe.
 - `plot_teleconnection_correlation_maps.py` — grid-point-by-grid-point Pearson r between the 2 SST
   indices (-NINO3.4, DMI N3.4-residual) and the 3 JJAS rainfall fields (amount, frequency, intensity —
-  same per-gridpoint definitions used throughout this project), as a shared-colorbar 2x3 map grid
-  (`figures/teleconnection_correlation_maps.png`). Each rainfall field is detrended per grid point but
-  NOT standardized before correlating (Pearson r is invariant to per-point rescaling, so this doesn't
-  change results, just skips an unneeded step). -NINO3.4 shows broad, spatially coherent positive
-  correlation with amount and frequency across nearly all of India (the classic ENSO-monsoon
-  teleconnection) but a much weaker, noisier pattern for intensity; DMI's residual shows a patchier,
-  overall weaker signal across all three, consistent with its near-zero AIRI correlation in the matrix.
+  same per-gridpoint definitions used throughout this project), as a shared-colorbar 2x3 map grid with
+  CMZ/WG/SEI region boundaries outlined on top (`figures/teleconnection_correlation_maps.png`). Each
+  rainfall field is detrended per grid point but NOT standardized before correlating (Pearson r is
+  invariant to per-point rescaling, so this doesn't change results, just skips an unneeded step). The
+  shared colorbar is scaled to [-vmax, vmax] where vmax is the largest |r| actually plotted across all 6
+  panels (currently ~0.6), not fixed to [-1, 1] — these grid-point teleconnection correlations rarely
+  get that high, so a fixed full-range scale would wash out the spatial contrast. -NINO3.4 shows broad,
+  spatially coherent positive correlation with amount and frequency across nearly all of India (the
+  classic ENSO-monsoon teleconnection) but a much weaker, noisier pattern for intensity; DMI's residual
+  shows a patchier, overall weaker signal across all three, consistent with its near-zero AIRI
+  correlation in the matrix.
 
 ## Setup
 
