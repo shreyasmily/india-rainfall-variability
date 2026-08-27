@@ -20,6 +20,16 @@ within each year to give one JJAS value per index per year, matching the
 paper's stated final step.
 
 ERSSTv5 longitude is 0-360, not -180/180: 120-170W becomes 190-240E.
+
+Also derives 2 columns matching the source paper's own correlation matrix
+layout (`-NINO3.4`, `DMI, N34 resids`):
+  - neg_nino34_jjas_detrended: -1 * the detrended NINO3.4 series (so its
+    correlations read the same sign/direction as the wetness-oriented
+    measures elsewhere in this project's matrix).
+  - dmi_n34_residual_detrended: DMI's detrended series with the linear
+    NINO3.4 signal regressed out (OLS on detrended NINO3.4, residual =
+    DMI - fitted), i.e. the part of DMI's variability independent of ENSO -
+    standard practice since DMI and NINO3.4 are themselves correlated.
 """
 import ssl
 import certifi
@@ -31,6 +41,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.signal import detrend as scipy_detrend
+from scipy.stats import linregress
 
 _orig_create_default_context = ssl.create_default_context
 
@@ -80,6 +91,15 @@ df = pd.DataFrame({
 })
 df['nino34_jjas_detrended'] = scipy_detrend(df['nino34_jjas'].values, type='linear')
 df['dmi_jjas_detrended'] = scipy_detrend(df['dmi_jjas'].values, type='linear')
+df['neg_nino34_jjas_detrended'] = -df['nino34_jjas_detrended']
+
+slope, intercept, r_dmi_n34, p_dmi_n34, se = linregress(
+    df['nino34_jjas_detrended'], df['dmi_jjas_detrended']
+)
+fitted = slope * df['nino34_jjas_detrended'] + intercept
+df['dmi_n34_residual_detrended'] = df['dmi_jjas_detrended'] - fitted
+print(f"\nDMI ~ NINO3.4 (both detrended): r={r_dmi_n34:.2f}, slope={slope:.2f} "
+      f"-> residualized DMI (ENSO signal removed) saved as dmi_n34_residual_detrended")
 
 os.makedirs('data/indices', exist_ok=True)
 df.to_csv('data/indices/enso_iod_indices.csv', index=False)

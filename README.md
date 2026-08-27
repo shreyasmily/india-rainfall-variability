@@ -41,8 +41,11 @@ large for GitHub. Only code, figures, and documentation are tracked.
 - `compute_enso_iod_indices.py` — NINO3.4 (120-170°W, 5°S-5°N) and DMI (west box 50-70°E,10°S-0° minus
   east box 90-110°E,10°S-10°N, Saji et al. 1999), area(cos-lat)-weighted box averages of the monthly SST
   anomaly (deviation from each grid point's 1901-2020 monthly climatology), restricted to JJAS and
-  averaged within each year. Outputs `data/indices/enso_iod_indices.csv` (raw + `_detrended`, 120 years)
-  and `figures/enso_iod_indices_timeseries.png`. Validated against the source paper: r(NINO3.4 detrended,
+  averaged within each year. Also derives `neg_nino34_jjas_detrended` (-1x detrended NINO3.4) and
+  `dmi_n34_residual_detrended` (DMI detrended, linear NINO3.4 signal regressed out via OLS - the part of
+  IOD variability independent of ENSO), matching the extra rows in the source paper's own correlation
+  matrix (`-NINO3.4`, `DMI, N34 resids`). Outputs `data/indices/enso_iod_indices.csv` (120 years) and
+  `figures/enso_iod_indices_timeseries.png`. Validated against the source paper: r(NINO3.4 detrended,
   AIRI detrended) = **-0.54**, matching their reported ~-0.53 for NINO3 ("virtually unchanged" for
   NINO3.4) almost exactly. NINO3.4's two clearest peaks land on 1997 and 2015, the two strongest
   observed El Niño events - another good sanity check.
@@ -105,17 +108,22 @@ large for GitHub. Only code, figures, and documentation are tracked.
   `data/indices/subregion_indices.csv` and a mask-verification map (`figures/subregion_masks.png`) —
   look at that figure before trusting the indices, since region boundaries are easy to get subtly wrong.
 - `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures, 4 EOF
-  PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity), and the 3 sub-India
-  regional indices above — matching the extra rows/columns in the source paper's own published matrix.
-  All on **detrended** series, as a 14x14 heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
-  (`data/indices/airi_correlation_matrix.csv`). Needs `eof_pcs.csv` and `subregion_indices.csv` to exist
-  first. AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all
-  tightly correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since
-  EOF1 dominates that field's variance); mean intensity and mean positive/negative anomaly are more
+  PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity), the 3 sub-India regional
+  indices, and 3 SST teleconnection indices from `compute_enso_iod_indices.py` (-NINO3.4, DMI, and DMI
+  with the linear NINO3.4 signal regressed out) — matching the extra rows/columns in the source paper's
+  own published matrix. All on **detrended** series, as a 17x17 heatmap
+  (`figures/airi_indices_correlation_matrix.png`) and CSV (`data/indices/airi_correlation_matrix.csv`).
+  Needs `eof_pcs.csv`, `subregion_indices.csv`, and `enso_iod_indices.csv` to exist first.
+  AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all tightly
+  correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since EOF1
+  dominates that field's variance); mean intensity and mean positive/negative anomaly are more
   independent. CMZ correlates very strongly with AIRI (r=0.93, expected given its size); SEI is the most
   distinct region, anti-correlating with both PC2-amount (r=-0.57) and PC1-intensity (r=-0.58) —
   consistent with SEI being governed more by the northeast monsoon than the southwest-monsoon signal
-  everything else here measures. We're still chasing a specific magnitude discrepancy against the source
+  everything else here measures. -NINO3.4 vs AIRI = 0.54 (matches the standalone sanity check in
+  `compute_enso_iod_indices.py`); raw DMI barely relates to AIRI directly (r=0.04), and DMI vs its own
+  NINO3.4-residual is r=0.96 (expected — only a modest ENSO-shared component was removed, consistent
+  with DMI-NINO3.4's own r=0.28). We're still chasing a specific magnitude discrepancy against the source
   paper's published matrix for the AIRI-vs-mean-intensity cell (the spatially-averaged measure, not the
   PC1 above - paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) — see git history /
   conversation log for what's been ruled out (aggregation order, rain-weighting, threshold choice,

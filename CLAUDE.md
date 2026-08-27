@@ -52,8 +52,11 @@ Two datasets on hand:
   empty.
 - `data/indices/enso_iod_indices.csv` — NINO3.4 + DMI, JJAS 1901-2020, built by
   `compute_enso_iod_indices.py` from the ERSST file above. Raw + `_detrended` columns, same convention as
-  `airi_indices.csv`. Validated against the source paper's reported NINO3-vs-AIRI correlation (~-0.53,
-  "virtually unchanged" for NINO3.4) - ours gives -0.54 detrended, a strong match.
+  `airi_indices.csv`, plus 2 already-detrended derived columns matching the source paper's matrix layout:
+  `neg_nino34_jjas_detrended` (-1x detrended NINO3.4) and `dmi_n34_residual_detrended` (DMI detrended with
+  the linear NINO3.4 signal regressed out via OLS - `compute_airi_correlation_matrix.py` uses these two
+  directly, no further detrending). Validated against the source paper's reported NINO3-vs-AIRI
+  correlation (~-0.53, "virtually unchanged" for NINO3.4) - ours gives -0.54 detrended, a strong match.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
