@@ -43,7 +43,9 @@ WG_RAINY_DAYS_THRESHOLD = 100
 DATA_EXTENT = [67.0, 90.0, 7.25, 32.75]
 
 # (lon, lat) pairs, Gadgil et al. (2019) Fig. 3(a) - see compute_subregion_indices.py.
-# Band spans lon [72.2, 88.5] only - does not extend into northeast India.
+# Capped east of CMZ_LON_MAX (does not extend into northeast India); open on
+# the west, bounded only by `valid` (India's actual border with Pakistan and
+# the Arabian Sea coastline in Rajasthan/Gujarat).
 NORTH_BOUNDARY = [
     (73.2, 29.5), (73.5, 29.4), (73.9, 29.2), (74.3, 29.0), (74.6, 28.8), (74.9, 28.7),
     (75.2, 28.5), (75.7, 28.3), (76.0, 28.0), (76.3, 27.8), (76.9, 27.6), (77.2, 27.4),
@@ -60,7 +62,7 @@ SOUTH_BOUNDARY = [
     (79.8, 19.0), (80.7, 18.8), (81.1, 18.8), (81.5, 18.8), (81.8, 18.8), (83.1, 18.7),
     (83.9, 18.8), (84.5, 19.0), (84.9, 19.2), (87.4, 21.6), (87.7, 21.7), (88.3, 21.8),
 ]
-CMZ_LON_RANGE = (72.2, 88.5)
+CMZ_LON_MAX = 88.5  # east cap only; west side bounded by `valid` (India's own border)
 SEI_LAT_LIMIT = 18.0
 REGION_COLORS = {'CMZ': '#d62728', 'WG': '#ff7f0e', 'SEI': '#2ca02c'}
 
@@ -77,8 +79,7 @@ north_lons, north_lats = zip(*sorted(NORTH_BOUNDARY))
 south_lons, south_lats = zip(*sorted(SOUTH_BOUNDARY))
 north_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': north_lons, 'fp': north_lats})
 south_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': south_lons, 'fp': south_lats})
-cmz_lon_in_range = (lon2d >= CMZ_LON_RANGE[0]) & (lon2d <= CMZ_LON_RANGE[1])
-cmz_mask = valid & cmz_lon_in_range & (lat2d >= south_limit) & (lat2d <= north_limit)
+cmz_mask = valid & (lon2d <= CMZ_LON_MAX) & (lat2d >= south_limit) & (lat2d <= north_limit)
 
 rainy_mask_all = jjas > RAINY_DAY_THRESHOLD
 mean_rainy_days = (rainy_mask_all.sum(dim='time') / n_years).where(valid)

@@ -206,15 +206,19 @@ already applied and doesn't touch this open issue.
 - Sub-India region masks (`compute_subregion_indices.py`, and duplicated in
   `plot_eof_comparison_with_regions.py`) are irregular, data-driven regions, not simple lat/lon boxes -
   don't simplify them back to a box "for clarity" without checking with the user first. CMZ's boundary
-  curves were corrected once already: an earlier version held the north/south curves' endpoint values
-  flat past their covered longitude range (`numpy.interp`'s default), which let the mask bleed into
-  northeast India and covered ~64% of India's valid domain. The corrected version explicitly caps CMZ to
-  `CMZ_LON_RANGE = (72.2, 88.5)` - outside that longitude range the mask is always False, no flat-holding
-  - giving a compact ~1560-gridpoint band that stops before the northeast, matching a much more plausible
-  "Central Monsoon Zone" shape. If CMZ's boundary curves change again, remember this project's default
-  numpy.interp behavior (flat extrapolation) is usually NOT what you want for a region that's meant to
-  have hard edges - always check whether an explicit lon/lat range cap is needed alongside the curve
-  interpolation, not just the curve values themselves. Always regenerate and look at
+  has been corrected twice: (1) an earlier version held the north/south curves' endpoint values flat past
+  their covered longitude range (`numpy.interp`'s default), which let the mask bleed into northeast India
+  and covered ~64% of India's valid domain - fixed by capping the EAST side at `CMZ_LON_MAX = 88.5`
+  (a grid point east of that is never CMZ, no flat-holding); (2) the first fix also capped the WEST side
+  at a fixed longitude (72.2), which cut CMZ off with an artificial straight vertical line instead of
+  following India's actual western border - fixed by removing the west-side cap entirely and letting
+  `valid` (India's real border with Pakistan + the Arabian Sea coast in Rajasthan/Gujarat) bound it
+  naturally, so the north/south curves' interpolated limits hold flat westward until they hit that real
+  border. Current state: CMZ is capped east, open west (bounded by `valid`), 1839 grid points. If CMZ's
+  boundary curves change again, remember this project's default numpy.interp behavior (flat extrapolation)
+  is usually NOT what you want for a region with a hard edge (like the east cap) but IS what you want
+  where the region should naturally extend to the country's real border (like the west side) - think
+  through which applies before adding or removing a range cap. Always regenerate and look at
   `figures/subregion_masks.png` after touching region-boundary logic in either script - it's easy to
   introduce a subtle sign/direction error (e.g. north vs south boundary swapped, east vs west of a
   per-latitude edge) that still produces a plausible-looking but wrong mask.

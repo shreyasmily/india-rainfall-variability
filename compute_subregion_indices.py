@@ -6,14 +6,19 @@ Region definitions (from the user, not independently derived):
   - CMZ: the band between two irregular north/south boundary curves from
     Gadgil et al. (2019) Fig. 3(a), each varying with longitude (not a
     lat/lon box). At each grid point's longitude, the north and south limits
-    are linearly interpolated from the boundary vertices below. Unlike a
-    naive interpolation, this band does NOT extend into northeast India -
-    it's explicitly capped to lon [72.2, 88.5] (a grid point outside that
-    range is never in CMZ, regardless of latitude), rather than holding the
-    nearest boundary vertex flat past the endpoints. A grid point is in CMZ
-    if its longitude is in that range AND its latitude falls between the
-    interpolated south and north limits, intersected with the dataset's own
-    `valid` (monsoon_mask) domain.
+    are linearly interpolated from the boundary vertices below. This band
+    does NOT extend into northeast India - it's explicitly capped at
+    CMZ_LON_MAX = 88.5E (a grid point east of that is never in CMZ,
+    regardless of latitude), rather than holding the north curve's last
+    vertex flat past its endpoint. The WEST side has no such cap: west of
+    the curves' first vertices (72.2E south / 73.2E north), their
+    interpolated latitude limits hold flat at each curve's westernmost
+    value, and the region is bounded there only by the dataset's own
+    `valid` (monsoon_mask) domain - i.e. India's actual western border with
+    Pakistan and the Arabian Sea coastline in Rajasthan/Gujarat, not an
+    arbitrary straight longitude cutoff. A grid point is in CMZ if its
+    longitude is <= CMZ_LON_MAX AND its latitude falls between the
+    interpolated south and north limits, intersected with `valid`.
   - WG: grid points with climatological mean JJAS rainy days (>1mm/day,
     matching this project's threshold convention) exceeding 100 days.
     Checked empirically (see conversation) that this threshold alone, with
@@ -65,8 +70,9 @@ RAINY_DAY_THRESHOLD = 1  # mm/day, matches compute_airi_indices.py
 WG_RAINY_DAYS_THRESHOLD = 100
 DATA_EXTENT = [67.0, 90.0, 7.25, 32.75]
 
-# (lon, lat) pairs, Gadgil et al. (2019) Fig. 3(a). Band spans lon [72.2, 88.5]
-# only - does not extend into northeast India (see CMZ_LON_RANGE below).
+# (lon, lat) pairs, Gadgil et al. (2019) Fig. 3(a). Capped east of CMZ_LON_MAX
+# (does not extend into northeast India); open on the west, bounded only by
+# `valid` (India's actual border) - see CMZ_LON_MAX below.
 NORTH_BOUNDARY = [
     (73.2, 29.5), (73.5, 29.4), (73.9, 29.2), (74.3, 29.0), (74.6, 28.8), (74.9, 28.7),
     (75.2, 28.5), (75.7, 28.3), (76.0, 28.0), (76.3, 27.8), (76.9, 27.6), (77.2, 27.4),
@@ -83,7 +89,7 @@ SOUTH_BOUNDARY = [
     (79.8, 19.0), (80.7, 18.8), (81.1, 18.8), (81.5, 18.8), (81.8, 18.8), (83.1, 18.7),
     (83.9, 18.8), (84.5, 19.0), (84.9, 19.2), (87.4, 21.6), (87.7, 21.7), (88.3, 21.8),
 ]
-CMZ_LON_RANGE = (72.2, 88.5)
+CMZ_LON_MAX = 88.5  # east cap only; west side bounded by `valid` (India's own border)
 SEI_LAT_LIMIT = 18.0
 
 ds = xr.open_dataset('data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020.nc')
@@ -101,8 +107,7 @@ north_lons, north_lats = zip(*sorted(NORTH_BOUNDARY))
 south_lons, south_lats = zip(*sorted(SOUTH_BOUNDARY))
 north_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': north_lons, 'fp': north_lats})
 south_limit = xr.apply_ufunc(np.interp, lon2d, kwargs={'xp': south_lons, 'fp': south_lats})
-cmz_lon_in_range = (lon2d >= CMZ_LON_RANGE[0]) & (lon2d <= CMZ_LON_RANGE[1])
-cmz_mask = valid & cmz_lon_in_range & (lat2d >= south_limit) & (lat2d <= north_limit)
+cmz_mask = valid & (lon2d <= CMZ_LON_MAX) & (lat2d >= south_limit) & (lat2d <= north_limit)
 
 # --- WG ------------------------------------------------------------------
 rainy_mask = jjas > RAINY_DAY_THRESHOLD
