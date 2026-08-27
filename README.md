@@ -10,9 +10,8 @@ teleconnection problem.
 
 ## Status
 
-Rainfall climatology figures, AIRI/EOF/sub-region indices, the SST record, and the NINO3.4/DMI indices
-are all done. Next step is folding NINO3.4/DMI into the main correlation matrix and/or building
-teleconnection figures (regression/correlation maps against AIRI and the sub-regions).
+Rainfall climatology figures, AIRI/EOF/sub-region indices, the SST record, the NINO3.4/DMI indices (in
+the main correlation matrix), and grid-point teleconnection correlation maps are all done.
 
 ## Data
 
@@ -137,6 +136,15 @@ large for GitHub. Only code, figures, and documentation are tracked.
   saved separately so both the plain and annotated versions are available to choose between). Makes the
   SEI anti-correlation finding above visually obvious: SEI sits almost entirely in the negative/blue
   lobe of both rainfall-mean EOF2 and mean-intensity EOF1, while CMZ sits in the positive/red lobe.
+- `plot_teleconnection_correlation_maps.py` — grid-point-by-grid-point Pearson r between the 2 SST
+  indices (-NINO3.4, DMI N3.4-residual) and the 3 JJAS rainfall fields (amount, frequency, intensity —
+  same per-gridpoint definitions used throughout this project), as a shared-colorbar 2x3 map grid
+  (`figures/teleconnection_correlation_maps.png`). Each rainfall field is detrended per grid point but
+  NOT standardized before correlating (Pearson r is invariant to per-point rescaling, so this doesn't
+  change results, just skips an unneeded step). -NINO3.4 shows broad, spatially coherent positive
+  correlation with amount and frequency across nearly all of India (the classic ENSO-monsoon
+  teleconnection) but a much weaker, noisier pattern for intensity; DMI's residual shows a patchier,
+  overall weaker signal across all three, consistent with its near-zero AIRI correlation in the matrix.
 
 ## Setup
 

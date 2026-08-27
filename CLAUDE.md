@@ -57,6 +57,15 @@ Two datasets on hand:
   the linear NINO3.4 signal regressed out via OLS - `compute_airi_correlation_matrix.py` uses these two
   directly, no further detrending). Validated against the source paper's reported NINO3-vs-AIRI
   correlation (~-0.53, "virtually unchanged" for NINO3.4) - ours gives -0.54 detrended, a strong match.
+- `data/indices/airi_correlation_matrix.csv` — the full 17x17 cross-correlation matrix (7 AIRI measures +
+  4 EOF PCs + 3 sub-region indices + 3 SST teleconnection indices), built by
+  `compute_airi_correlation_matrix.py`, reproducing the source paper's matrix structure.
+- `figures/teleconnection_correlation_maps.png` — grid-point-by-grid-point Pearson r maps (2x3: rows
+  -NINO3.4 / DMI N3.4-residual, columns amount/frequency/intensity), built by
+  `plot_teleconnection_correlation_maps.py`. Each rainfall field detrended per grid point (not
+  standardized - Pearson r is invariant to that). -NINO3.4 correlates broadly and coherently with amount
+  and frequency across nearly all of India, weaker/noisier for intensity; DMI residual is patchier and
+  weaker across all three.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
@@ -68,9 +77,9 @@ detrended index). Note `scipy.signal.detrend` solves one batched least-squares f
 point at once - a NaN anywhere fails the whole call, not just that column - so NaN cells must be
 filled before detrendin2g and re-masked after, not left as NaN going in.
 
-Still needed: the ENSO (e.g. Nino 3.4) and IOD (Dipole Mode Index) index time series computed from the
-SST record (not yet derived) - this is the next step, needed to correlate against the 14-column
-AIRI/EOF/sub-region matrix already built.
+All planned pieces (AIRI/EOF/sub-region indices, ENSO/IOD indices, the 17x17 correlation matrix, and the
+grid-point teleconnection correlation maps) are now built. The open item is the AIRI-vs-mean-intensity
+discrepancy documented below.
 
 `data/` is gitignored — do not assume its contents are committed. Update the data table in README.md
 as datasets are added or computed.
