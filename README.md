@@ -54,15 +54,6 @@ large for GitHub. Only code, figures, and documentation are tracked.
   1901-2020 linear trend removed) and a 7-panel figure (`figures/airi_indices_timeseries.png`, raw
   values). Unlike the other scripts here, these are *unweighted* spatial averages (matching the literal
   definitions), not area/cos(lat)-weighted.
-- `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among all 7 AIRI measures above,
-  computed on the **detrended** series (matching the source paper's stated methodology), as a heatmap
-  (`figures/airi_indices_correlation_matrix.png`) and CSV (`data/indices/airi_correlation_matrix.csv`).
-  AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days are all tightly correlated (r≥0.93,
-  largely the same signal); mean intensity and mean positive/negative anomaly are more independent.
-  We're still chasing a specific discrepancy against the source paper's published matrix for the
-  AIRI-vs-mean-intensity cell (paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) —
-  see git history / conversation log for what's been ruled out (aggregation order, rain-weighting,
-  threshold choice, spatial mask artifacts) before picking this back up.
 - `compute_moron_eof_analysis.py` — EOF analysis (Moron et al. 2017 style) of JJAS standardized
   anomalies for rainfall mean, rainy-day frequency, and mean intensity (same per-gridpoint definitions
   as `compute_airi_indices.py`, each grid point linearly detrended then standardized instead of
@@ -70,11 +61,27 @@ large for GitHub. Only code, figures, and documentation are tracked.
   `compute_airi_correlation_matrix.py`). cos(lat)-weighted, matching the companion enso-sst-analysis
   project's EOF convention. Outputs one 4-panel figure per variable (EOF1/PC1, EOF2/PC2) —
   `figures/eof_rainfall_mean.png`, `figures/eof_rainy_day_frequency.png`,
-  `figures/eof_mean_intensity.png`. PC1 sign is fixed (if needed) to correlate positively with AIRI's
-  detrended index. Rainfall-mean and rainy-day-frequency EOF1 explain 18.0%/31.8% of variance and
-  correlate strongly with AIRI (r=0.96/0.93) — mean intensity's EOF1 explains far less (6.0%) and is
-  now essentially uncorrelated with AIRI once detrended (r=0.05, down from 0.26 raw) — most of that
-  original correlation was apparently the shared long-term trend, not real year-to-year covariability.
+  `figures/eof_mean_intensity.png` — plus all 6 PC time series (PC1+PC2 x 3 variables) to
+  `data/indices/eof_pcs.csv`, for `compute_airi_correlation_matrix.py` to fold in. PC1 sign is fixed (if
+  needed) to correlate positively with AIRI's detrended index. Rainfall-mean and rainy-day-frequency
+  EOF1 explain 18.0%/31.8% of variance and correlate strongly with AIRI (r=0.96/0.93) — mean intensity's
+  EOF1 explains far less (6.0%) and is now essentially uncorrelated with AIRI once detrended (r=0.05,
+  down from 0.26 raw) — most of that original correlation was apparently the shared long-term trend, not
+  real year-to-year covariability.
+- `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures plus 4
+  EOF PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity — matching the extra
+  rows/columns in the source paper's own published matrix), all on **detrended** series, as an 11x11
+  heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
+  (`data/indices/airi_correlation_matrix.csv`). Needs `eof_pcs.csv` from
+  `compute_moron_eof_analysis.py` to exist first.
+  AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all tightly
+  correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since EOF1
+  dominates that field's variance); mean intensity and mean positive/negative anomaly are more
+  independent. Notable new finding: PC2-amount and PC1-intensity are strongly anti-correlated (r=-0.73). We're still chasing a specific discrepancy
+  against the source paper's published matrix for the AIRI-vs-mean-intensity cell (paper reports r=0.77;
+  ours currently gives 0.63 detrended, 0.58 raw) — see git history / conversation log for what's been
+  ruled out (aggregation order, rain-weighting, threshold choice, spatial mask artifacts) before picking
+  this back up.
 - `plot_eof_comparison.py` — the 4 headline spatial patterns from the above (rainfall mean EOF1+EOF2,
   rainy-day-frequency EOF1, mean-intensity EOF1) laid out together in one figure
   (`figures/eof_comparison.png`), maps only (no PC time series). Recomputes the same EOFs rather than

@@ -24,6 +24,10 @@ positively with AIRI's detrended raw-anomaly index
 is mathematically arbitrary, so this just fixes the physically intuitive
 convention (positive PC1 = wetter/more frequent/more intense than normal).
 EOF2 has no equally natural anchor, so its raw solver sign is kept.
+
+Also saves all 6 PC time series (PC1+PC2 x 3 variables) to
+data/indices/eof_pcs.csv, for compute_airi_correlation_matrix.py to fold into
+its cross-correlation matrix alongside the 7 AIRI measures.
 """
 import ssl
 import certifi
@@ -158,6 +162,15 @@ def render(varname, label, field):
     plt.close(fig)
     print(f'Saved figures/eof_{varname}.png')
 
+    return years, pc_data[0].values, pc_data[1].values
 
+
+pc_series = {}
 for varname, (label, field) in FIELDS.items():
-    render(varname, label, field)
+    years, pc1_vals, pc2_vals = render(varname, label, field)
+    pc_series[f'pc1_{varname}'] = pc1_vals
+    pc_series[f'pc2_{varname}'] = pc2_vals
+
+pcs_df = pd.DataFrame({'year': years, **pc_series})
+pcs_df.to_csv('data/indices/eof_pcs.csv', index=False)
+print(f"Saved data/indices/eof_pcs.csv ({len(pcs_df)} years, columns: {list(pc_series.keys())})")

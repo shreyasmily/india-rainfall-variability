@@ -37,6 +37,9 @@ Two datasets on hand:
   mm/day, one is a unitless standardized anomaly, one is a raw grid-point count). Each measure also has
   a `_detrended` counterpart column (linear 1901-2020 trend removed); `compute_airi_correlation_matrix.py`
   always correlates the detrended versions, matching the source paper's methodology.
+- `data/indices/eof_pcs.csv` — PC1+PC2 time series (one row per year) for all 3 EOF variables, built by
+  `compute_moron_eof_analysis.py`. Already detrended (computed from detrended fields), so
+  `compute_airi_correlation_matrix.py` uses these columns as-is, no separate `_detrended` version.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
