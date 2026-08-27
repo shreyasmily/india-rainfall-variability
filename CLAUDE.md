@@ -40,6 +40,10 @@ Two datasets on hand:
 - `data/indices/eof_pcs.csv` — PC1+PC2 time series (one row per year) for all 3 EOF variables, built by
   `compute_moron_eof_analysis.py`. Already detrended (computed from detrended fields), so
   `compute_airi_correlation_matrix.py` uses these columns as-is, no separate `_detrended` version.
+- `data/indices/subregion_indices.csv` — detrended mean JJAS rainfall anomaly for CMZ/WG/SEI, built by
+  `compute_subregion_indices.py`. Region boundary definitions came from the user, not derived - see that
+  script's docstring for the exact CMZ boundary curve vertices, the WG rainy-day threshold, and the SEI
+  rule. Has both raw and `_detrended` columns, same convention as `airi_indices.csv`.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
@@ -49,7 +53,7 @@ frequency, mean intensity), extracting EOF1/PC1 and EOF2/PC2 for each. Needs
 `data/indices/airi_indices.csv` to exist first (used only to fix PC1's sign convention against AIRI's
 detrended index). Note `scipy.signal.detrend` solves one batched least-squares fit across every grid
 point at once - a NaN anywhere fails the whole call, not just that column - so NaN cells must be
-filled before detrending and re-masked after, not left as NaN going in.
+filled before detrendin2g and re-masked after, not left as NaN going in.
 
 Still needed: a 120-year SST dataset (for ENSO/IOD index computation), and the ENSO/IOD index time
 series themselves (not yet derived).
@@ -183,3 +187,11 @@ already applied and doesn't touch this open issue.
   three, which was backwards for intensity specifically - there's no way to know the "right" sign for an
   EOF a priori, only by checking against a reference like the paper's reported values. If you add a 4th
   EOF variable, check its sign against the paper rather than assuming uniform-positive is safe.
+- Sub-India region masks (`compute_subregion_indices.py`) are irregular, data-driven regions, not simple
+  lat/lon boxes - don't simplify them back to a box "for clarity" without checking with the user first.
+  CMZ in particular came out much bigger than the commonly-cited simplified box used elsewhere (~64% of
+  the valid domain) - this was verified as a faithful implementation of the exact boundary curves given,
+  not a bug, but hasn't been independently confirmed against the source paper's actual figure. Always
+  regenerate and look at `figures/subregion_masks.png` after touching region-boundary logic - it's easy
+  to introduce a subtle sign/direction error (e.g. north vs south boundary swapped, east vs west of a
+  per-latitude edge) that still produces a plausible-looking but wrong mask.

@@ -2,21 +2,24 @@
 Cross-correlation matrix (Pearson r) among the 7 all-India JJAS rainfall
 variability measures in data/indices/airi_indices.csv (AIRI + 6 alternates,
 see compute_airi_indices.py - run that first if the CSV doesn't exist yet),
-plus 4 EOF principal components from compute_moron_eof_analysis.py
+4 EOF principal components from compute_moron_eof_analysis.py
 (data/indices/eof_pcs.csv - run that first too): PC1 and PC2 of rainfall
-amount, PC1 of rainy-day frequency, and PC1 of mean intensity. Matches the
-extra rows/columns in the source paper's own published matrix.
+amount, PC1 of rainy-day frequency, and PC1 of mean intensity, and 3 sub-India
+regional mean JJAS rainfall anomalies from compute_subregion_indices.py
+(data/indices/subregion_indices.csv - run that first too): CMZ, WG, SEI.
+Matches the extra rows/columns in the source paper's own published matrix.
 
 Each measure is a different unit (mm/day anomaly, unitless standardized
 anomaly, a raw grid-point count, a day count), so comparing them directly only
 makes sense via a unitless statistic like r - hence this matrix, not e.g. a
 shared-axis overlay of the time series themselves.
 
-Uses the "_detrended" columns from airi_indices.csv (each series' 1901-2020
-linear trend removed before correlating), matching the source paper's stated
-methodology - not the raw columns. The PCs from eof_pcs.csv are already
-computed from detrended fields (see compute_moron_eof_analysis.py), so they're
-used as-is, no further detrending needed.
+Uses the "_detrended" columns from airi_indices.csv and subregion_indices.csv
+(each series' 1901-2020 linear trend removed before correlating), matching
+the source paper's stated methodology - not the raw columns. The PCs from
+eof_pcs.csv are already computed from detrended fields (see
+compute_moron_eof_analysis.py), so they're used as-is, no further detrending
+needed.
 """
 import numpy as np
 import pandas as pd
@@ -26,7 +29,8 @@ import matplotlib.pyplot as plt
 
 df = pd.read_csv('data/indices/airi_indices.csv')
 pcs = pd.read_csv('data/indices/eof_pcs.csv')
-df = df.merge(pcs, on='year', how='inner')
+subregions = pd.read_csv('data/indices/subregion_indices.csv')
+df = df.merge(pcs, on='year', how='inner').merge(subregions, on='year', how='inner')
 
 LABELS = {
     'airi_raw_anomaly_mm_day': 'AIRI\n(raw anomaly)',
@@ -43,11 +47,17 @@ PC_LABELS = {
     'pc2_rainfall_mean': 'PC2\namount',
     'pc1_mean_intensity': 'PC1\nintens.',
 }
+SUBREGION_LABELS = {
+    'cmz_mean_anomaly_mm_day': 'CMZ',
+    'wg_mean_anomaly_mm_day': 'WG',
+    'sei_mean_anomaly_mm_day': 'SEI',
+}
 base_cols = list(LABELS.keys())
 pc_cols = list(PC_LABELS.keys())
-detrended_cols = [f'{c}_detrended' for c in base_cols] + pc_cols
-all_cols = base_cols + pc_cols
-all_labels = {**LABELS, **PC_LABELS}
+subregion_cols = list(SUBREGION_LABELS.keys())
+detrended_cols = [f'{c}_detrended' for c in base_cols] + pc_cols + [f'{c}_detrended' for c in subregion_cols]
+all_cols = base_cols + pc_cols + subregion_cols
+all_labels = {**LABELS, **PC_LABELS, **SUBREGION_LABELS}
 
 corr = df[detrended_cols].corr(method='pearson')
 corr.index = all_cols
@@ -57,7 +67,7 @@ print('Pearson correlation matrix (detrended series + EOF PCs):')
 print(corr.round(2).to_string())
 
 n = len(all_cols)
-fig, ax = plt.subplots(figsize=(12, 11))
+fig, ax = plt.subplots(figsize=(14, 13))
 im = ax.imshow(corr.values, cmap='RdBu_r', vmin=-1, vmax=1)
 
 ax.set_xticks(range(n))
@@ -81,7 +91,7 @@ cbar = fig.colorbar(im, ax=ax, shrink=0.8)
 cbar.set_label('Pearson correlation coefficient (r)')
 
 ax.set_title(
-    'Cross-Correlation: AIRI + 6 Alternate Measures + 4 EOF PCs\n'
+    'Cross-Correlation: AIRI + 6 Alternate Measures + 4 EOF PCs + 3 Sub-India Regions\n'
     '1901-2020, detrended, unitless Pearson r',
     fontsize=11,
 )

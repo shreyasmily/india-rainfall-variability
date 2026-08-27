@@ -22,6 +22,7 @@ Early stage — rainfall climatology figures done, SST/index data still to come.
 | ENSO index (e.g. Niño 3.4) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | IOD index (Dipole Mode Index) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
 | AIRI + 6 alternate measures | On hand — computed by `compute_airi_indices.py` | `data/indices/airi_indices.csv` |
+| CMZ / WG / SEI regional indices | On hand — computed by `compute_subregion_indices.py` | `data/indices/subregion_indices.csv` |
 
 Raw and intermediate data files are not committed to this repository (see `.gitignore`) — they're too
 large for GitHub. Only code, figures, and documentation are tracked.
@@ -75,25 +76,36 @@ large for GitHub. Only code, figures, and documentation are tracked.
   though we don't have their exact magnitude to check against (this is a different, EOF-based quantity
   from the spatially-averaged "mean intensity" measure in the correlation-matrix discrepancy noted below,
   which is still open).
-- `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures plus 4
-  EOF PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity — matching the extra
-  rows/columns in the source paper's own published matrix), all on **detrended** series, as an 11x11
-  heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
-  (`data/indices/airi_correlation_matrix.csv`). Needs `eof_pcs.csv` from
-  `compute_moron_eof_analysis.py` to exist first.
-  AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all tightly
-  correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since EOF1
-  dominates that field's variance); mean intensity and mean positive/negative anomaly are more
-  independent. Notable finding: PC2-amount and PC1-intensity are strongly correlated (r=0.73). We're
-  still chasing a specific magnitude discrepancy against the source paper's published matrix for the
-  AIRI-vs-mean-intensity cell (the spatially-averaged measure, not the PC1 above - paper reports r=0.77;
-  ours currently gives 0.63 detrended, 0.58 raw) — see git history / conversation log for what's been
-  ruled out (aggregation order, rain-weighting, threshold choice, spatial mask artifacts) before picking
-  this back up.
 - `plot_eof_comparison.py` — the 4 headline spatial patterns from the above (rainfall mean EOF1+EOF2,
   rainy-day-frequency EOF1, mean-intensity EOF1) laid out together in one figure
   (`figures/eof_comparison.png`), maps only (no PC time series). Recomputes the same EOFs rather than
   loading saved output — see this script if you need to change what the comparison shows.
+- `compute_subregion_indices.py` — detrended mean JJAS rainfall anomaly for 3 sub-India regions: CMZ
+  (Central Monsoon Zone, the band between two irregular north/south boundary curves digitized from
+  Gadgil et al. 2019 Fig. 3(a) — **turned out to cover ~64% of India's valid domain, a big diagonal band
+  from Gujarat/Rajasthan up to ~32°N, much larger than the commonly-cited simplified ~74-86°E,16-26°N
+  box** — verify this matches the actual paper figure), WG (Western Ghats — grid points with >100
+  climatological mean JJAS rainy days; checked empirically that this threshold alone, no extra
+  geographic restriction needed, is already confined to the coastal strip lon 73-76.75°E, lat 9.5-19°N),
+  and SEI (Southeast India — east of WG's per-latitude eastern edge, south of 18°N). Outputs
+  `data/indices/subregion_indices.csv` and a mask-verification map (`figures/subregion_masks.png`) —
+  look at that figure before trusting the indices, since region boundaries are easy to get subtly wrong.
+- `compute_airi_correlation_matrix.py` — cross-correlation (Pearson r) among the 7 AIRI measures, 4 EOF
+  PCs (PC1/PC2 rainfall amount, PC1 rainy-day frequency, PC1 mean intensity), and the 3 sub-India
+  regional indices above — matching the extra rows/columns in the source paper's own published matrix.
+  All on **detrended** series, as a 14x14 heatmap (`figures/airi_indices_correlation_matrix.png`) and CSV
+  (`data/indices/airi_correlation_matrix.csv`). Needs `eof_pcs.csv` and `subregion_indices.csv` to exist
+  first. AIRI/standardized-anomaly/N-positive-gridpoints/mean-rainy-days/PC1-amount/PC1-freq are all
+  tightly correlated (r≥0.93, largely the same signal, PC1-freq vs mean-rainy-days=1.00 exactly since
+  EOF1 dominates that field's variance); mean intensity and mean positive/negative anomaly are more
+  independent. CMZ correlates very strongly with AIRI (r=0.93, expected given its size); SEI is the most
+  distinct region, anti-correlating with both PC2-amount (r=-0.57) and PC1-intensity (r=-0.58) —
+  consistent with SEI being governed more by the northeast monsoon than the southwest-monsoon signal
+  everything else here measures. We're still chasing a specific magnitude discrepancy against the source
+  paper's published matrix for the AIRI-vs-mean-intensity cell (the spatially-averaged measure, not the
+  PC1 above - paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) — see git history /
+  conversation log for what's been ruled out (aggregation order, rain-weighting, threshold choice,
+  spatial mask artifacts) before picking this back up.
 
 ## Setup
 
