@@ -112,6 +112,11 @@ large for GitHub. Only code, figures, and documentation are tracked.
   PC1 above - paper reports r=0.77; ours currently gives 0.63 detrended, 0.58 raw) — see git history /
   conversation log for what's been ruled out (aggregation order, rain-weighting, threshold choice,
   spatial mask artifacts) before picking this back up.
+- `plot_eof_comparison_with_regions.py` — the same 4-panel EOF comparison as `plot_eof_comparison.py`,
+  with the CMZ/WG/SEI region boundaries outlined on top (`figures/eof_comparison_with_regions.png`,
+  saved separately so both the plain and annotated versions are available to choose between). Makes the
+  SEI anti-correlation finding above visually obvious: SEI sits almost entirely in the negative/blue
+  lobe of both rainfall-mean EOF2 and mean-intensity EOF1, while CMZ sits in the positive/red lobe.
 
 ## Setup
 
