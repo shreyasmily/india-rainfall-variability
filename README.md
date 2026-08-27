@@ -10,8 +10,9 @@ teleconnection problem.
 
 ## Status
 
-Rainfall climatology figures, AIRI/EOF/sub-region indices, and the SST record are done. ENSO/IOD index
-computation from the SST record is the next step.
+Rainfall climatology figures, AIRI/EOF/sub-region indices, the SST record, and the NINO3.4/DMI indices
+are all done. Next step is folding NINO3.4/DMI into the main correlation matrix and/or building
+teleconnection figures (regression/correlation maps against AIRI and the sub-regions).
 
 ## Data
 
@@ -20,8 +21,7 @@ computation from the SST record is the next step.
 | IMD gridded daily rainfall, 0.25°, monsoon-masked, 1901–2020 | On hand | `data/rainfall/imd_rain_daily_0p25_monsoon-masked_1901-2020.nc` |
 | Surface elevation, regridded to the IMD 0.25° grid | On hand — built by `fetch_elevation.py` from AWS-hosted Terrarium terrain tiles | `data/elevation/india_elevation_0p25deg.nc` |
 | ERSSTv5 monthly SST, global 2°, 1854-present | On hand — downloaded by `fetch_ersst.py` from NOAA PSL | `data/sst/ersst.v5.mnmean.nc` |
-| ENSO index (e.g. Niño 3.4) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
-| IOD index (Dipole Mode Index) | Not yet obtained — likely computed from the SST record | will go in `data/indices/` |
+| NINO3.4 + DMI, JJAS 1901–2020 | On hand — computed by `compute_enso_iod_indices.py` | `data/indices/enso_iod_indices.csv` |
 | AIRI + 6 alternate measures | On hand — computed by `compute_airi_indices.py` | `data/indices/airi_indices.csv` |
 | CMZ / WG / SEI regional indices | On hand — computed by `compute_subregion_indices.py` | `data/indices/subregion_indices.csv` |
 
@@ -38,6 +38,14 @@ large for GitHub. Only code, figures, and documentation are tracked.
   whole, subset by whatever script computes ENSO/IOD indices next). Longitude is 0-360°, not -180/180 —
   convert before any Pacific/Indian Ocean region selection, same gotcha handled in the companion
   enso-sst-analysis project.
+- `compute_enso_iod_indices.py` — NINO3.4 (120-170°W, 5°S-5°N) and DMI (west box 50-70°E,10°S-0° minus
+  east box 90-110°E,10°S-10°N, Saji et al. 1999), area(cos-lat)-weighted box averages of the monthly SST
+  anomaly (deviation from each grid point's 1901-2020 monthly climatology), restricted to JJAS and
+  averaged within each year. Outputs `data/indices/enso_iod_indices.csv` (raw + `_detrended`, 120 years)
+  and `figures/enso_iod_indices_timeseries.png`. Validated against the source paper: r(NINO3.4 detrended,
+  AIRI detrended) = **-0.54**, matching their reported ~-0.53 for NINO3 ("virtually unchanged" for
+  NINO3.4) almost exactly. NINO3.4's two clearest peaks land on 1997 and 2015, the two strongest
+  observed El Niño events - another good sanity check.
 - `plot_jjas_climatology.py` — climatological JJAS mean rainfall (shaded) and interannual std. dev.
   (contoured), in 4 framing variants. See `figures/`.
 - `plot_jjas_rainfall_fraction.py` — climatological % of annual rainfall falling in JJAS (shaded), with

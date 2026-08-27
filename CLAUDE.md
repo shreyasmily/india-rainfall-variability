@@ -47,7 +47,13 @@ Two datasets on hand:
 - `data/sst/ersst.v5.mnmean.nc` — NOAA ERSSTv5 monthly SST, global 2°, 1854-present, downloaded whole
   (not pre-subset to 1901-2020) by `fetch_ersst.py` from NOAA PSL. Longitude is 0-360°, not -180/180 -
   convert before any Pacific/Indian Ocean region selection (e.g. Nino 3.4, DMI), same gotcha as the
-  companion enso-sst-analysis project's SST handling.
+  companion enso-sst-analysis project's SST handling. Latitude is DESCENDING (88 -> -88) in this file -
+  `.sel(lat=slice(...))` needs (north, south) order, not (south, north), or the slice silently returns
+  empty.
+- `data/indices/enso_iod_indices.csv` — NINO3.4 + DMI, JJAS 1901-2020, built by
+  `compute_enso_iod_indices.py` from the ERSST file above. Raw + `_detrended` columns, same convention as
+  `airi_indices.csv`. Validated against the source paper's reported NINO3-vs-AIRI correlation (~-0.53,
+  "virtually unchanged" for NINO3.4) - ours gives -0.54 detrended, a strong match.
 
 `compute_moron_eof_analysis.py` (and `plot_eof_comparison.py`, which recomputes the same fields for a
 subset comparison figure) run EOF decomposition (cos-lat weighted, via the `eofs` library, same
