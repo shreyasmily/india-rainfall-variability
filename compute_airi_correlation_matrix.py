@@ -117,8 +117,11 @@ group_boundaries = [
     len(base_cols) + len(pc_cols) + len(subregion_cols) - 0.5,
 ]
 for b in group_boundaries:
-    ax.axhline(b, color='black', linewidth=1.5, zorder=3)
-    ax.axvline(b, color='black', linewidth=1.5, zorder=3)
+    # Clip each separator to the populated diagonal+lower-triangle region
+    # only, instead of spanning the full axis - otherwise it cuts across the
+    # blank upper triangle, which is just visual noise over empty space.
+    ax.hlines(b, xmin=-0.5, xmax=b + 1, color='black', linewidth=1.5, zorder=3)
+    ax.vlines(b, ymin=b - 1, ymax=n - 0.5, color='black', linewidth=1.5, zorder=3)
 
 for i in range(n):
     for j in range(n):
