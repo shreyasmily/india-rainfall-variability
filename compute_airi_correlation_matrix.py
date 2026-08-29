@@ -108,6 +108,18 @@ ax.set_yticks(np.arange(-0.5, n, 1), minor=True)
 ax.grid(which='minor', color='white', linewidth=2)
 ax.tick_params(which='minor', bottom=False, left=False)
 
+# Solid black separators between the 4 measure groups (AIRI measures | EOF PCs
+# | sub-India regions | SST indices), on both axes, to make the group
+# boundaries easier to follow visually.
+group_boundaries = [
+    len(base_cols) - 0.5,
+    len(base_cols) + len(pc_cols) - 0.5,
+    len(base_cols) + len(pc_cols) + len(subregion_cols) - 0.5,
+]
+for b in group_boundaries:
+    ax.axhline(b, color='black', linewidth=1.5, zorder=3)
+    ax.axvline(b, color='black', linewidth=1.5, zorder=3)
+
 for i in range(n):
     for j in range(n):
         if j > i:
