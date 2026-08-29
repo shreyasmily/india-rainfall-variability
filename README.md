@@ -85,8 +85,17 @@ large for GitHub. Only code, figures, and documentation are tracked.
   NEGATIVELY - matching the source paper's own published matrix, where PC1-intensity is anti-correlated
   with AIRI while the other two are strongly positive. (An earlier version of this script forced positive
   correlation for all three, which was backwards for intensity specifically - EOF sign is arbitrary, so
-  there was no way to know without checking against the paper's actual reported signs.) Rainfall-mean
-  and rainy-day-frequency EOF1 explain 18.0%/31.8% of variance and correlate strongly with AIRI
+  there was no way to know without checking against the paper's actual reported signs.)
+
+  Variance explained (detrended standardized anomalies, cos-lat weighted):
+
+  | Field | EOF1 | EOF2 |
+  |---|---|---|
+  | Rainfall mean | 18.0% | 9.4% |
+  | Rainy-day frequency | 31.8% | 8.4% |
+  | Mean intensity | 6.0% | 5.2% |
+
+  Rainfall-mean and rainy-day-frequency EOF1 correlate strongly with AIRI
   (r=0.96/0.93) — mean intensity's EOF1 explains far less (6.0%) and now correlates only weakly
   negatively with AIRI once detrended (r=-0.05) — sign now matches the paper's reported anti-correlation,
   though we don't have their exact magnitude to check against (this is a different, EOF-based quantity
