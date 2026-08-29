@@ -86,7 +86,16 @@ print(corr.round(2).to_string())
 
 n = len(all_cols)
 fig, ax = plt.subplots(figsize=(16, 15))
-im = ax.imshow(corr.values, cmap='RdBu_r', vmin=-1, vmax=1)
+ax.set_facecolor('white')
+
+# Matrix is symmetric - blank out the upper triangle entirely (no fill color,
+# no gridline border) rather than just skipping its text labels, so only the
+# diagonal and lower triangle read as populated cells.
+upper_triangle = np.triu(np.ones((n, n), dtype=bool), k=1)
+matrix_display = np.ma.masked_where(upper_triangle, corr.values)
+cmap = plt.get_cmap('RdBu_r').copy()
+cmap.set_bad('white')
+im = ax.imshow(matrix_display, cmap=cmap, vmin=-1, vmax=1)
 
 ax.set_xticks(range(n))
 ax.set_yticks(range(n))
